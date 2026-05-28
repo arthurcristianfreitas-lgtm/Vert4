@@ -581,7 +581,7 @@ function AppStyles() {
         background: rgba(7,21,18,.78);
       }
       .brand { display: flex; align-items: center; gap: 12px; border: 0; background: transparent; color: inherit; cursor: pointer; padding: 0; text-align: left; }
-      .brand-mark { position: relative; width: 54px; height: 54px; border-radius: 18px; display: grid; place-items: center; color: ${V.gold}; border: 1px solid rgba(215,181,109,.38); background: linear-gradient(145deg, rgba(215,181,109,.18), rgba(68,162,118,.08)); font-weight: 950; letter-spacing: -.03em; box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 12px 28px rgba(0,0,0,.18); }
+      .brand-mark { position: relative; width: 52px; height: 52px; border-radius: 16px; font-size: 14px; display: grid; place-items: center; color: ${V.gold}; border: 1px solid rgba(215,181,109,.38); background: linear-gradient(145deg, rgba(215,181,109,.18), rgba(68,162,118,.08)); font-weight: 950; letter-spacing: -.03em; box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 12px 28px rgba(0,0,0,.18); }
       .brand-mark::after { content: ""; position: absolute; inset: 7px; border-radius: 10px; border: 1px solid rgba(255,255,255,.08); pointer-events: none; }
       .brand-title { font-weight: 900; letter-spacing: .12em; font-size: 13px; }
       .brand-four { display: inline-block; transform: translateY(5px); color: ${V.gold}; }
@@ -1125,12 +1125,17 @@ export default function App() {
             <div className="eyebrow">Diagnóstico comercial para clínicas premium</div>
             <h1 className="title">Uma secretária estratégica pode aumentar o faturamento<br/><span style={{color:"#d7b56d"}}>sem aumentar o tráfego.</span></h1>
             <p className="subtitle">
-Seu atendimento na cadeira é impecável. Descubra se a sua recepção está vendendo na mesma altura!
+              Seu atendimento na cadeira é impecável. Descubra se a sua recepção está vendendo na mesma altura!
             </p>
             <div className="actions">
-              <button className="btn btn-primary" onClick={() => go("form_id")}>
+              <button
+                className="btn btn-primary"
+                style={{ fontSize:17, padding:"18px 32px", letterSpacing:.3,
+                  boxShadow:`0 8px 32px rgba(215,181,109,.35)`, minHeight:58 }}
+                onClick={() => go("form_id")}
+              >
                 Iniciar diagnóstico
-                <Icon name="arrow" size={18} />
+                <Icon name="arrow" size={20} />
               </button>
               <span className="micro">Leva cerca de 4 minutos. Resultado imediato.</span>
             </div>
@@ -1141,23 +1146,31 @@ Seu atendimento na cadeira é impecável. Descubra se a sua recepção está ven
               <MetricCard icon="diagnosis" label="Método" value="DISC + Receita" sub="Perfil observado conectado ao impacto financeiro." />
               <MetricCard icon="conversion" label="Benchmark" value="50%" sub="Referência de conversão semanal para comparação." color={V.green} />
               <MetricCard icon="analytics" label="Analytics" value="Fase 2" sub="Cliques, origem, tempo e interações rastreados." color={V.blue} />
-              <MetricCard icon="strategy" label="Saída" value="Plano 30 dias" sub="Rotina semanal já com resultados para sua clínica." color={V.gold2} />
+              <MetricCard icon="strategy" label="Resultado" value="Plano 30 dias" sub="Rotina semanal com metas mensuráveis e scripts por perfil." color={V.gold2} />
             </div>
           </Panel>
         </section>
 
         <section className="grid-3" style={{ marginTop: 22 }}>
           {[
-            ["growth", "Crescimento com critério", "Mostra onde a clínica pode ganhar receita antes de aumentar tráfego."],
-            ["result", "Decisão menos emocional", "Ajuda a separar simpatia, esforço e performance comercial real."],
-            ["analytics", "Resultado em 15 minutos", "Laudo comportamental completo com perfil DISC, taxa de conversão e próximas ações para sua equipe."],
-          ].map(([icon, title, text], idx) => (
-            <div className="glass panel-pad" key={title} style={idx === 2 ? { border: "2px solid #d7b56d", background: "linear-gradient(145deg, rgba(215,181,109,0.12), rgba(12,28,22,0.95))", boxShadow: "0 0 28px rgba(215,181,109,0.25)" } : {}}>
-              <div className="metric-icon">
+            ["growth",  "Crescimento com critério",  "Mostra onde a clínica pode ganhar receita antes de aumentar tráfego.", false],
+            ["result",  "Decisão menos emocional",   "Ajuda a separar simpatia, esforço e performance comercial real.",     false],
+            ["result",  "Resultado em 15 minutos",   "Receba um laudo comportamental completo com plano de desenvolvimento individual e ação imediata.", true],
+          ].map(([icon, title, text, highlight]) => (
+            <div
+              className="glass panel-pad"
+              key={title}
+              style={highlight ? {
+                border:"1.5px solid rgba(215,181,109,.55)",
+                background:"linear-gradient(145deg, rgba(215,181,109,.1), rgba(7,21,18,.6))",
+                boxShadow:"0 8px 32px rgba(215,181,109,.14)",
+              } : {}}
+            >
+              <div className="metric-icon" style={highlight ? { color:"#d7b56d" } : {}}>
                 <Icon name={icon} />
               </div>
-              <h3 style={{ margin: "0 0 8px", fontSize: idx === 2 ? 22 : 18, color: idx === 2 ? "#d7b56d" : "inherit", fontWeight: 900 }}>{title}</h3>
-              <p className="section-copy" style={{ fontSize: idx === 2 ? 15 : 14, lineHeight: idx === 2 ? 1.6 : 1.5 }}>{text}</p>
+              <h3 style={{ margin:"0 0 8px", fontSize: highlight ? 20 : 18, color: highlight ? "#d7b56d" : undefined }}>{title}</h3>
+              <p className="section-copy" style={{ fontSize: highlight ? 15 : 14, color: highlight ? "#c9c0b3" : undefined }}>{text}</p>
             </div>
           ))}
         </section>
