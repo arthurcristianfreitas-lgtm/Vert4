@@ -581,7 +581,7 @@ function AppStyles() {
         background: rgba(7,21,18,.78);
       }
       .brand { display: flex; align-items: center; gap: 12px; border: 0; background: transparent; color: inherit; cursor: pointer; padding: 0; text-align: left; }
-      .brand-mark { position: relative; width: 42px; height: 42px; border-radius: 14px; display: grid; place-items: center; color: ${V.gold}; border: 1px solid rgba(215,181,109,.38); background: linear-gradient(145deg, rgba(215,181,109,.18), rgba(68,162,118,.08)); font-weight: 950; letter-spacing: -.03em; box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 12px 28px rgba(0,0,0,.18); }
+      .brand-mark { position: relative; width: 54px; height: 54px; border-radius: 18px; display: grid; place-items: center; color: ${V.gold}; border: 1px solid rgba(215,181,109,.38); background: linear-gradient(145deg, rgba(215,181,109,.18), rgba(68,162,118,.08)); font-weight: 950; letter-spacing: -.03em; box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 12px 28px rgba(0,0,0,.18); }
       .brand-mark::after { content: ""; position: absolute; inset: 7px; border-radius: 10px; border: 1px solid rgba(255,255,255,.08); pointer-events: none; }
       .brand-title { font-weight: 900; letter-spacing: .12em; font-size: 13px; }
       .brand-four { display: inline-block; transform: translateY(5px); color: ${V.gold}; }
@@ -1125,8 +1125,7 @@ export default function App() {
             <div className="eyebrow">Diagnóstico comercial para clínicas premium</div>
             <h1 className="title">Uma secretária estratégica pode aumentar o faturamento<br/><span style={{color:"#d7b56d"}}>sem aumentar o tráfego.</span></h1>
             <p className="subtitle">
-              Um diagnóstico visual e financeiro que cruza perfil comportamental, taxa de conversão,
-              potencial comercial e sinais de prontidão para a Fase 2 da VERT4.
+Seu atendimento na cadeira é impecável. Descubra se a sua recepção está vendendo na mesma altura!
             </p>
             <div className="actions">
               <button className="btn btn-primary" onClick={() => go("form_id")}>
@@ -1142,7 +1141,7 @@ export default function App() {
               <MetricCard icon="diagnosis" label="Método" value="DISC + Receita" sub="Perfil observado conectado ao impacto financeiro." />
               <MetricCard icon="conversion" label="Benchmark" value="50%" sub="Referência de conversão semanal para comparação." color={V.green} />
               <MetricCard icon="analytics" label="Analytics" value="Fase 2" sub="Cliques, origem, tempo e interações rastreados." color={V.blue} />
-              <MetricCard icon="strategy" label="Saída" value="Plano" sub="Próximos passos claros para o dono da clínica." color={V.gold2} />
+              <MetricCard icon="strategy" label="Saída" value="Plano 30 dias" sub="Rotina semanal já com resultados para sua clínica." color={V.gold2} />
             </div>
           </Panel>
         </section>
@@ -1151,14 +1150,14 @@ export default function App() {
           {[
             ["growth", "Crescimento com critério", "Mostra onde a clínica pode ganhar receita antes de aumentar tráfego."],
             ["result", "Decisão menos emocional", "Ajuda a separar simpatia, esforço e performance comercial real."],
-            ["analytics", "Painel para administrador", "Registra canais acionados, origem, tempo antes do clique e funil de conversão."],
-          ].map(([icon, title, text]) => (
-            <div className="glass panel-pad" key={title}>
+            ["analytics", "Resultado em 15 minutos", "Laudo comportamental completo com perfil DISC, taxa de conversão e próximas ações para sua equipe."],
+          ].map(([icon, title, text], idx) => (
+            <div className="glass panel-pad" key={title} style={idx === 2 ? { border: "2px solid #d7b56d", background: "linear-gradient(145deg, rgba(215,181,109,0.12), rgba(12,28,22,0.95))", boxShadow: "0 0 28px rgba(215,181,109,0.25)" } : {}}>
               <div className="metric-icon">
                 <Icon name={icon} />
               </div>
-              <h3 style={{ margin: "0 0 8px", fontSize: 18 }}>{title}</h3>
-              <p className="section-copy" style={{ fontSize: 14 }}>{text}</p>
+              <h3 style={{ margin: "0 0 8px", fontSize: idx === 2 ? 22 : 18, color: idx === 2 ? "#d7b56d" : "inherit", fontWeight: 900 }}>{title}</h3>
+              <p className="section-copy" style={{ fontSize: idx === 2 ? 15 : 14, lineHeight: idx === 2 ? 1.6 : 1.5 }}>{text}</p>
             </div>
           ))}
         </section>
