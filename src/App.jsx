@@ -288,7 +288,7 @@ function buildIntelligence(result) {
     P3: {
       executive: `${name} tende a vender pela autoridade: explica, contextualiza e valoriza o tratamento. O risco aparece quando a explicação fica maior que o fechamento e o lead sai informado, mas sem agenda marcada.`,
       strengths: ["Autoridade técnica e argumentação", "Capacidade de educar o lead", "Boa ponte entre desejo e solucao"],
-      weaknesses: ["Pode sobre-explicar e alongar a decisão", "Nem sempre pede o compromisso no momento certo", "Risco de transformar conversa em aula"],
+      weaknesses: ["Pode sobre-explicar e alongar a decisão", "Nem sempre pede o compromisso no momento certo", "Risco de transform conversa em aula"],
       opportunity: "Encapsular a explicação em uma proposta simples: problema, caminho, próximo passo e reserva de horário.",
       owner: "Dono deve pedir síntese e fechamento. A melhoria não e estudar mais; é converter conhecimento em decisão.",
       script: "Use: 'Pelo que você me contou, faz sentido avaliarmos pessoalmente. Tenho dois horários bons esta semana; prefere manhã ou tarde?'",
@@ -581,7 +581,7 @@ function AppStyles() {
         background: rgba(7,21,18,.78);
       }
       .brand { display: flex; align-items: center; gap: 12px; border: 0; background: transparent; color: inherit; cursor: pointer; padding: 0; text-align: left; }
-      .brand-mark { position: relative; width: 42px; height: 42px; border-radius: 14px; display: grid; place-items: center; color: ${V.gold}; border: 1px solid rgba(215,181,109,.38); background: linear-gradient(145deg, rgba(215,181,109,.18), rgba(68,162,118,.08)); font-weight: 950; letter-spacing: -.03em; box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 12px 28px rgba(0,0,0,.18); }
+      .brand-mark { position: relative; width: 52px; height: 52px; border-radius: 16px; font-size: 14px; display: grid; place-items: center; color: ${V.gold}; border: 1px solid rgba(215,181,109,.38); background: linear-gradient(145deg, rgba(215,181,109,.18), rgba(68,162,118,.08)); font-weight: 950; letter-spacing: -.03em; box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 12px 28px rgba(0,0,0,.18); }
       .brand-mark::after { content: ""; position: absolute; inset: 7px; border-radius: 10px; border: 1px solid rgba(255,255,255,.08); pointer-events: none; }
       .brand-title { font-weight: 900; letter-spacing: .12em; font-size: 13px; }
       .brand-four { display: inline-block; transform: translateY(5px); color: ${V.gold}; }
@@ -589,8 +589,8 @@ function AppStyles() {
       .container { width: min(1180px, calc(100% - 32px)); margin: 0 auto; padding: 32px 0 56px; }
       .hero { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(320px, .92fr); gap: clamp(22px, 4vw, 44px); align-items: center; padding: clamp(18px, 4vw, 48px) 0 24px; }
       .eyebrow { color: ${V.gold}; text-transform: uppercase; letter-spacing: .18em; font-size: 11px; font-weight: 900; }
-      .title { font-size: clamp(40px, 6vw, 76px); line-height: .94; letter-spacing: 0; margin: 16px 0 18px; max-width: 850px; }
-      .subtitle { color: ${V.muted}; font-size: clamp(16px, 2vw, 20px); line-height: 1.7; max-width: 700px; }
+      .title { font-size: clamp(48px, 7vw, 84px); line-height: .94; letter-spacing: 0; margin: 16px 0 18px; max-width: 850px; }
+      .subtitle { color: ${V.muted}; font-size: clamp(18px, 2vw, 22px); line-height: 1.7; max-width: 700px; }
       .actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 28px; }
       .btn { border: 0; border-radius: 14px; padding: 14px 18px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; font-weight: 900; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease; text-decoration: none; min-height: 48px; }
       .btn:hover { transform: translateY(-2px); }
@@ -711,7 +711,7 @@ function Header({ onSecretAdmin, onHome }) {
             onMouseEnter={e => e.currentTarget.style.color="#d7b56d"}
             onMouseLeave={e => e.currentTarget.style.color="#978b7c"}
           >
-            Concierge Clínico Analytics
+            Concierge Clínico
           </span>
         </button>
       </div>
@@ -1123,17 +1123,21 @@ export default function App() {
         <section className="hero">
           <div>
             <div className="eyebrow">Diagnóstico comercial para clínicas premium</div>
-            <h1 className="title">Uma secretária estratégica pode aumentar o faturamento<br/><span style={{color:"#d7b56d"}}>sem aumentar o tráfego.</span></h1>
+            <h1 className="title" style={{ fontSize: "clamp(46px, 7vw, 84px)" }}>Uma secretária estratégica pode aumentar o faturamento<br/><span style={{color:"#d7b56d"}}>sem aumentar o tráfego.</span></h1>
             <p className="subtitle">
-              Um diagnóstico visual e financeiro que cruza perfil comportamental, taxa de conversão,
-              potencial comercial e sinais de prontidão para a Fase 2 da VERT4.
+              Seu atendimento na cadeira é impecável. Descubra se a sua recepção está vendendo na mesma altura!
             </p>
             <div className="actions">
-              <button className="btn btn-primary" onClick={() => go("form_id")}>
+              <button
+                className="btn btn-primary"
+                style={{ fontSize:18, padding:"18px 36px", letterSpacing:.5,
+                  boxShadow:`0 12px 40px rgba(215,181,109,.45)`, minHeight:62 }}
+                onClick={() => go("form_id")}
+              >
                 Iniciar diagnóstico
-                <Icon name="arrow" size={18} />
+                <Icon name="arrow" size={22} />
               </button>
-              <span className="micro">Leva cerca de 4 minutos. Resultado imediato.</span>
+              <span className="micro" style={{ fontSize: 11, fontWeight: 800, color: V.gold, textTransform: "uppercase", letterSpacing: 1 }}>Leva cerca de 4 minutos. Resultado imediato.</span>
             </div>
           </div>
 
@@ -1141,24 +1145,32 @@ export default function App() {
             <div className="grid-2">
               <MetricCard icon="diagnosis" label="Método" value="DISC + Receita" sub="Perfil observado conectado ao impacto financeiro." />
               <MetricCard icon="conversion" label="Benchmark" value="50%" sub="Referência de conversão semanal para comparação." color={V.green} />
-              <MetricCard icon="analytics" label="Analytics" value="Fase 2" sub="Cliques, origem, tempo e interações rastreados." color={V.blue} />
-              <MetricCard icon="strategy" label="Saída" value="Plano" sub="Próximos passos claros para o dono da clínica." color={V.gold2} />
+              <MetricCard icon="analytics" label="Inteligência" value="Visão Clara" sub="Identifique gargalos e converta mais pacientes." color={V.blue} />
+              <MetricCard icon="strategy" label="Resultado" value="Plano de 30 dias" sub="Já com resultados práticos e metas mensuráveis." color={V.gold2} />
             </div>
           </Panel>
         </section>
 
         <section className="grid-3" style={{ marginTop: 22 }}>
           {[
-            ["growth", "Crescimento com critério", "Mostra onde a clínica pode ganhar receita antes de aumentar tráfego."],
-            ["result", "Decisão menos emocional", "Ajuda a separar simpatia, esforço e performance comercial real."],
-            ["analytics", "Painel para administrador", "Registra canais acionados, origem, tempo antes do clique e funil de conversão."],
-          ].map(([icon, title, text]) => (
-            <div className="glass panel-pad" key={title}>
-              <div className="metric-icon">
+            ["growth",  "Crescimento com critério",  "Mostra onde a clínica pode ganhar receita antes de aumentar tráfego.", false],
+            ["result",  "Decisão menos emocional",   "Ajuda a separar simpatia, esforço e performance comercial real.",     false],
+            ["result",  "Plano de 30 dias já com resultados", "Receba um laudo comportamental completo com plano de desenvolvimento individual e ação imediata.", true],
+          ].map(([icon, title, text, highlight]) => (
+            <div
+              className="glass panel-pad"
+              key={title}
+              style={highlight ? {
+                border:"1.5px solid rgba(215,181,109,.55)",
+                background:"linear-gradient(145deg, rgba(215,181,109,.1), rgba(7,21,18,.6))",
+                boxShadow:"0 8px 32px rgba(215,181,109,.14)",
+              } : {}}
+            >
+              <div className="metric-icon" style={highlight ? { color:"#d7b56d" } : {}}>
                 <Icon name={icon} />
               </div>
-              <h3 style={{ margin: "0 0 8px", fontSize: 18 }}>{title}</h3>
-              <p className="section-copy" style={{ fontSize: 14 }}>{text}</p>
+              <h3 style={{ margin:"0 0 8px", fontSize: highlight ? 20 : 18, color: highlight ? "#d7b56d" : undefined }}>{title}</h3>
+              <p className="section-copy" style={{ fontSize: highlight ? 15 : 14, color: highlight ? "#c9c0b3" : undefined }}>{text}</p>
             </div>
           ))}
         </section>
@@ -1172,7 +1184,7 @@ export default function App() {
         <Stepper step={0} />
         <div className="eyebrow">Etapa 1 de 3</div>
         <h2 className="section-title">Identificação da clínica</h2>
-        <p className="section-copy">Esses dados personalizam o laudo e permitem relacionar o diagnóstico aos cliques de Fase 2 no painel admin.</p>
+        <p className="section-copy">Esses dados personalizam o laudo e permitem gerar um diagnóstico comercial preciso para a sua clínica.</p>
 
         <div className="grid-2" style={{ marginTop: 24 }}>
           <Field label="Responsável" value={form.owner} onChange={(value) => updateForm("owner", value)} error={errors.owner} placeholder="Nome do dono ou gestor" noNumbers />
