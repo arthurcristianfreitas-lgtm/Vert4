@@ -1120,7 +1120,7 @@ export default function App() {
   if (step === "intro") {
     return shell(
       <>
-        ```jsx
+        
 <section className="hero">
   <div>
     <div
@@ -1227,14 +1227,14 @@ export default function App() {
     </div>
   </Panel>
 </section>
-```
+
 
 
         <section className="grid-3" style={{ marginTop: 22 }}>
           {[
             ["growth",  "Crescimento com critério",  "Mostra onde a clínica pode ganhar receita antes de aumentar tráfego.", false],
             ["result",  "Decisão menos emocional",   "Ajuda a separar simpatia, esforço e performance comercial real.",     false],
-            ["result",  "Plano de 30 dias já com resultados", "Receba um laudo comportamental completo com plano de desenvolvimento individual e ação imediata.", true],
+            ["result",  "Plano de ação executavel em 30 dias", "Receba um laudo comportamental completo com plano de desenvolvimento individual e ação imediata.", true],
           ].map(([icon, title, text, highlight]) => (
             <div
               className="glass panel-pad"
