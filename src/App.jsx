@@ -288,7 +288,7 @@ function buildIntelligence(result) {
     P3: {
       executive: `${name} tende a vender pela autoridade: explica, contextualiza e valoriza o tratamento. O risco aparece quando a explicação fica maior que o fechamento e o lead sai informado, mas sem agenda marcada.`,
       strengths: ["Autoridade técnica e argumentação", "Capacidade de educar o lead", "Boa ponte entre desejo e solucao"],
-      weaknesses: ["Pode sobre-explicar e alongar a decisão", "Nem sempre pede o compromisso no momento certo", "Risco de transform conversa em aula"],
+      weaknesses: ["Pode sobre-explicar e alongar a decisão", "Nem sempre pede o compromisso no momento certo", "Risco de transformar conversa em aula"],
       opportunity: "Encapsular a explicação em uma proposta simples: problema, caminho, próximo passo e reserva de horário.",
       owner: "Dono deve pedir síntese e fechamento. A melhoria não e estudar mais; é converter conhecimento em decisão.",
       script: "Use: 'Pelo que você me contou, faz sentido avaliarmos pessoalmente. Tenho dois horários bons esta semana; prefere manhã ou tarde?'",
@@ -589,8 +589,8 @@ function AppStyles() {
       .container { width: min(1180px, calc(100% - 32px)); margin: 0 auto; padding: 32px 0 56px; }
       .hero { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(320px, .92fr); gap: clamp(22px, 4vw, 44px); align-items: center; padding: clamp(18px, 4vw, 48px) 0 24px; }
       .eyebrow { color: ${V.gold}; text-transform: uppercase; letter-spacing: .18em; font-size: 11px; font-weight: 900; }
-      .title { font-size: clamp(48px, 7vw, 84px); line-height: .94; letter-spacing: 0; margin: 16px 0 18px; max-width: 850px; }
-      .subtitle { color: ${V.muted}; font-size: clamp(18px, 2vw, 22px); line-height: 1.7; max-width: 700px; }
+      .title { font-size: clamp(40px, 6vw, 76px); line-height: .94; letter-spacing: 0; margin: 16px 0 18px; max-width: 850px; }
+      .subtitle { color: ${V.muted}; font-size: clamp(16px, 2vw, 20px); line-height: 1.7; max-width: 700px; }
       .actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 28px; }
       .btn { border: 0; border-radius: 14px; padding: 14px 18px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; font-weight: 900; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease; text-decoration: none; min-height: 48px; }
       .btn:hover { transform: translateY(-2px); }
@@ -711,7 +711,7 @@ function Header({ onSecretAdmin, onHome }) {
             onMouseEnter={e => e.currentTarget.style.color="#d7b56d"}
             onMouseLeave={e => e.currentTarget.style.color="#978b7c"}
           >
-            Concierge Clínico
+            Concierge Clínico Analytics
           </span>
         </button>
       </div>
@@ -1071,16 +1071,16 @@ export default function App() {
     setLoadingStats(true);
     setAdminError("");
     try {
-      const response = await fetch("/api/admin/stats", {
+      const response = await fetch("/api/admin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ action: "stats", password }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Não foi possível carregar o painel.");
       setStats(data);
     } catch (error) {
-      setAdminError(error.mêssage || "Falha ao carregar analytics.");
+      setAdminError(error.message || "Falha ao carregar analytics.");
     } finally {
       setLoadingStats(false);
     }
@@ -1089,17 +1089,17 @@ export default function App() {
   const loginAdmin = async () => {
     setAdminError("");
     try {
-      const response = await fetch("/api/admin/login", {
+      const response = await fetch("/api/admin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: adminPw }),
+        body: JSON.stringify({ action: "login", password: adminPw }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Senha incorreta.");
       setAdminOk(true);
       await loadStats(adminPw);
     } catch (error) {
-      setAdminError(error.mêssage || "Senha incorreta.");
+      setAdminError(error.message || "Senha incorreta.");
     }
   };
 
@@ -1120,121 +1120,42 @@ export default function App() {
   if (step === "intro") {
     return shell(
       <>
-        
-<section className="hero">
-  <div>
-    <div
-      className="eyebrow"
-      style={{
-        fontSize: "18px",
-        letterSpacing: ".22em",
-        marginBottom: "12px",
-      }}
-    >
-      Diagnóstico comercial para clínicas premium
-    </div>
+        <section className="hero">
+          <div>
+            <div className="eyebrow">Diagnóstico comercial para clínicas premium</div>
+            <h1 className="title">Uma secretária estratégica pode aumentar o faturamento<br/><span style={{color:"#d7b56d"}}>sem aumentar o tráfego.</span></h1>
+            <p className="subtitle">
+              Seu atendimento na cadeira é impecável. Descubra se a sua recepção está vendendo na mesma altura!
+            </p>
+            <div className="actions">
+              <button
+                className="btn btn-primary"
+                style={{ fontSize:17, padding:"18px 32px", letterSpacing:.3,
+                  boxShadow:`0 8px 32px rgba(215,181,109,.35)`, minHeight:58 }}
+                onClick={() => go("form_id")}
+              >
+                Iniciar diagnóstico
+                <Icon name="arrow" size={20} />
+              </button>
+              <span className="micro">Leva cerca de 4 minutos. Resultado imediato.</span>
+            </div>
+          </div>
 
-    <h1
-      className="title"
-      style={{
-        fontSize: "clamp(34px, 4.8vw, 58px)",
-        lineHeight: "1.08",
-        maxWidth: "860px",
-      }}
-    >
-      Seu atendimento na cadeira é impecável.
-      <br />
-      <span style={{ color: "#d7b56d" }}>
-        Descubra se a sua recepção está vendendo na mesma altura!
-      </span>
-    </h1>
-
-    <div className="actions">
-      <button
-        className="btn btn-primary"
-        style={{
-          fontSize: 18,
-          padding: "20px 38px",
-          borderRadius: 18,
-          fontWeight: 900,
-          background:
-            "linear-gradient(135deg, #d7b56d 0%, #ead394 100%)",
-          boxShadow: "0 12px 38px rgba(215,181,109,.30)",
-          border: "1px solid rgba(255,255,255,.12)",
-          transition: "all .25s ease",
-          minHeight: 62,
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = "translateY(-2px)";
-          e.currentTarget.style.boxShadow =
-            "0 18px 48px rgba(215,181,109,.42)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = "translateY(0px)";
-          e.currentTarget.style.boxShadow =
-            "0 12px 38px rgba(215,181,109,.30)";
-        }}
-        onClick={() => go("form_id")}
-      >
-        Iniciar diagnóstico
-        <Icon name="arrow" size={20} />
-      </button>
-
-      <span
-        className="micro"
-        style={{
-          fontSize: 13,
-          color: "#c9c0b3",
-        }}
-      >
-        Descubra os gargalos que podem estar impedindo sua clínica de converter mais pacientes.
-      </span>
-    </div>
-  </div>
-
-  <Panel>
-    <div className="grid-2">
-      <MetricCard
-        icon="diagnosis"
-        label="Método"
-        value="DISC + Receita"
-        sub="Perfil observado conectado ao impacto financeiro."
-      />
-
-      <MetricCard
-        icon="conversion"
-        label="Benchmark"
-        value="50%"
-        sub="Referência de conversão semanal para comparação."
-        color={V.green}
-      />
-
-      <MetricCard
-        icon="analytics"
-        label="Analytics"
-        value="Fase 2"
-        sub="Cliques, origem, tempo e interações rastreados."
-        color={V.blue}
-      />
-
-      <MetricCard
-        icon="strategy"
-        label="Resultado"
-        value="Plano 30 dias"
-        sub="Rotina semanal com metas mensuráveis e scripts por perfil."
-        color={V.gold2}
-      />
-    </div>
-  </Panel>
-</section>
-
-
+          <Panel>
+            <div className="grid-2">
+              <MetricCard icon="diagnosis" label="Método" value="DISC + Receita" sub="Perfil observado conectado ao impacto financeiro." />
+              <MetricCard icon="conversion" label="Benchmark" value="50%" sub="Referência de conversão semanal para comparação." color={V.green} />
+              <MetricCard icon="analytics" label="Analytics" value="Fase 2" sub="Cliques, origem, tempo e interações rastreados." color={V.blue} />
+              <MetricCard icon="strategy" label="Resultado" value="Plano 30 dias" sub="Rotina semanal com metas mensuráveis e scripts por perfil." color={V.gold2} />
+            </div>
+          </Panel>
+        </section>
 
         <section className="grid-3" style={{ marginTop: 22 }}>
           {[
             ["growth",  "Crescimento com critério",  "Mostra onde a clínica pode ganhar receita antes de aumentar tráfego.", false],
             ["result",  "Decisão menos emocional",   "Ajuda a separar simpatia, esforço e performance comercial real.",     false],
-            ["result",  "Plano de ação executavel em 30 dias", "Receba um laudo comportamental completo com plano de desenvolvimento individual e ação imediata.", true],
+            ["result",  "Resultado em 15 minutos",   "Receba um laudo comportamental completo com plano de desenvolvimento individual e ação imediata.", true],
           ].map(([icon, title, text, highlight]) => (
             <div
               className="glass panel-pad"
@@ -1263,7 +1184,7 @@ export default function App() {
         <Stepper step={0} />
         <div className="eyebrow">Etapa 1 de 3</div>
         <h2 className="section-title">Identificação da clínica</h2>
-        <p className="section-copy">Esses dados personalizam o laudo e permitem gerar um diagnóstico comercial preciso para a sua clínica.</p>
+        <p className="section-copy">Esses dados personalizam o laudo e permitem relacionar o diagnóstico aos cliques de Fase 2 no painel admin.</p>
 
         <div className="grid-2" style={{ marginTop: 24 }}>
           <Field label="Responsável" value={form.owner} onChange={(value) => updateForm("owner", value)} error={errors.owner} placeholder="Nome do dono ou gestor" noNumbers />
@@ -1789,10 +1710,10 @@ function AdminPanel({ adminOk, adminPw, setAdminPw, adminError, loginAdmin, load
           <button
             className="btn btn-ghost"
             onClick={async () => {
-              const response = await fetch("/api/admin/export", {
+              const response = await fetch("/api/admin", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ password: adminPw }),
+                body: JSON.stringify({ action: "export", password: adminPw }),
               });
               const blob = await response.blob();
               const url = URL.createObjectURL(blob);
