@@ -134,5 +134,17 @@ export default async function handler(req) {
     });
   }
 
+  // ── Export simples (JSON — sem openpyxl no JS) ──────────────────────────────
+  if (action === "export") {
+    const sb = createClient(SUPABASE_URL, SERVICE_KEY);
+    const { data: sessions = [] } = await sb
+      .from("sessions").select("*").eq("consented", true)
+      .order("started_at", { ascending: false });
+    const { data: events = [] } = await sb
+      .from("events").select("*")
+      .order("created_at", { ascending: false }).limit(2000);
+    return cors({ sessions, events });
+  }
+
   return cors({ error: "Ação desconhecida" }, 400);
 }
