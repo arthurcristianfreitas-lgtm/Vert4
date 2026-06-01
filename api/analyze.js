@@ -1,36 +1,17 @@
-// api/analyze.js — Vercel Serverless Function
-// Substitui a rota /api/analyze do Flask
-// A chave da Anthropic fica segura no servidor, nunca exposta no browser
+// api/analyze.js — Vercel Serverless (Node.js format)
+export default async function handler(req, res) {
+  res.setHeader("Content-Type", "application/json");
 
-export const config = { runtime: "edge" };
-
-export default async function handler(req) {
-  if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Método não permitido" }), {
-      status: 405,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
+  if (req.method !== "POST") return res.status(405).json({ error: "Método não permitido" });
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    return new Response(JSON.stringify({ error: "ANTHROPIC_API_KEY não configurada" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
+  if (!apiKey) return res.status(500).json({ error: "ANTHROPIC_API_KEY não configurada" });
 
-  let body;
-  try { body = await req.json(); }
-  catch { return new Response(JSON.stringify({ error: "JSON inválido" }), { status: 400 }); }
-
-  const prompt = (body.prompt || "").trim();
-  if (!prompt) {
-    return new Response(JSON.stringify({ error: "Prompt não informado" }), { status: 400 });
-  }
+  const { prompt = "" } = req.body || {};
+  if (!prompt.trim()) return res.status(400).json({ error: "Prompt não informado" });
 
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const r = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "Content-Type":      "application/json",
@@ -43,24 +24,10 @@ export default async function handler(req) {
         messages:   [{ role: "user", content: prompt }],
       }),
     });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      return new Response(JSON.stringify({ error: data.error?.message || "Erro da Anthropic" }), {
-        status: res.status,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    return new Response(JSON.stringify(data), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    const data = await r.json();
+    if (!r.ok) return res.status(r.status).json({ error: data.error?.message || "Erro Anthropic" });
+    return res.status(200).json(data);
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    return res.status(500).json({ error: err.message });
   }
 }
