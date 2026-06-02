@@ -100,12 +100,12 @@ const QUESTIONS = [
   {
     id: "DA4",
     dim: "Resultado comercial",
-    q: "Sendo completamente honesto: como você descreveria o resultado comercial da sua secretária?",
+    q: "Sendo completamente honesto(a): como você descreveria o resultado comercial da sua secretária?",
     opts: [
       { t: "Mantém a operação funcionando, mas não gera agendamentos de forma proativa.", p: 1 },
       { t: "É adorada pelas pacientes, mas os números de conversão de leads novos são fracos.", p: 2 },
       { t: "Converte bem quando a paciente já tem interesse claro, mas raramente vende de verdade.", p: 3 },
-      { t: "Maquina de agendamentos. Quando um lead entra, a probabilidade de fechar ? alta.", p: 4 },
+      { t: "Máquina de agendamentos. Quando um lead entra, a probabilidade de fechar é alta.", p: 4 },
     ],
   },
   {
@@ -126,7 +126,7 @@ const CHANNELS = [
     id: "whatsapp",
     label: "WhatsApp",
     handle: "+55 69 9983-5337",
-    url: "https://wa.me/556999835337?text=Ol%C3%A1%20Aline!%20Acabei%20de%20fazer%20o%20Diagn%C3%B3stico%20VERT4%20e%20quero%20liberar%20a%20Fase%202.",
+    url: "https://wa.me/5569998353370?text=Ola%20Aline.%20Fiz%20o%20Diagnostico%20VERT4%20e%20quero%20liberar%20a%20Fase%202.",
   },
   {
     id: "instagram",
@@ -344,7 +344,7 @@ function buildIntelligence(result) {
 async function genNarrative(payload) {
   const { profile, mixed, mixedStr, fin, form, potential } = payload;
   const profileData = PROFILE[profile];
-  const prompt = `Você ? o motor analitico premium da VERT4 para clínicas de saúde, estética ? alta performance comercial.
+  const prompt = `Você é o motor analítico premium da VERT4 para clínicas de saúde, estética e alta performance comercial.
 
 Gere uma análise em JSON puro, sem markdown, com comentarios humanos, precisos e persuasivos.
 
@@ -581,7 +581,7 @@ function AppStyles() {
         background: rgba(7,21,18,.78);
       }
       .brand { display: flex; align-items: center; gap: 12px; border: 0; background: transparent; color: inherit; cursor: pointer; padding: 0; text-align: left; }
-      .brand-mark { position: relative; width: 52px; height: 52px; border-radius: 16px; font-size: 14px; display: grid; place-items: center; color: ${V.gold}; border: 1px solid rgba(215,181,109,.38); background: linear-gradient(145deg, rgba(215,181,109,.18), rgba(68,162,118,.08)); font-weight: 950; letter-spacing: -.03em; box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 12px 28px rgba(0,0,0,.18); }
+      .brand-mark { position: relative; width: 42px; height: 42px; border-radius: 14px; display: grid; place-items: center; color: ${V.gold}; border: 1px solid rgba(215,181,109,.38); background: linear-gradient(145deg, rgba(215,181,109,.18), rgba(68,162,118,.08)); font-weight: 950; letter-spacing: -.03em; box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 12px 28px rgba(0,0,0,.18); }
       .brand-mark::after { content: ""; position: absolute; inset: 7px; border-radius: 10px; border: 1px solid rgba(255,255,255,.08); pointer-events: none; }
       .brand-title { font-weight: 900; letter-spacing: .12em; font-size: 13px; }
       .brand-four { display: inline-block; transform: translateY(5px); color: ${V.gold}; }
@@ -669,52 +669,16 @@ function AppStyles() {
 }
 
 function Header({ onSecretAdmin, onHome }) {
-  // Logo (VT4) → home
-  // Texto "Analytics" → admin (com senha)
   return (
     <header className="topbar">
-      <div className="brand" style={{ display:"flex", alignItems:"center", gap:0, cursor:"default" }}>
-        {/* Clique no ícone VT4 = volta para home */}
-        <button
-          onClick={onHome}
-          aria-label="Voltar ao início"
-          style={{ background:"transparent", border:"none", cursor:"pointer",
-            display:"flex", alignItems:"center", padding:0, marginRight:10 }}
-        >
-          <span className="brand-mark">VT4</span>
-        </button>
-
-        {/* Clique em VERT4 = home também */}
-        <button
-          onClick={onHome}
-          aria-label="Voltar ao início"
-          style={{ background:"transparent", border:"none", cursor:"pointer",
-            display:"flex", flexDirection:"column", alignItems:"flex-start", padding:0 }}
-        >
+      <button className="brand" onClick={onSecretAdmin} aria-label="Voltar ao inicio">
+        <span className="brand-mark">VT4</span>
+        <span>
           <span className="brand-title">VERT<span className="brand-four">4</span></span>
-          {/* 5 cliques em "Analytics" = abre admin */}
-          <span
-            onClick={(e) => {
-              e.stopPropagation();
-              const el = e.currentTarget;
-              el._count = (el._count || 0) + 1;
-              clearTimeout(el._timer);
-              if (el._count >= 5) {
-                el._count = 0;
-                onSecretAdmin();
-              } else {
-                el._timer = setTimeout(() => { el._count = 0; }, 1200);
-              }
-            }}
-            style={{ fontSize:11, color:"#978b7c", letterSpacing:1, cursor:"pointer",
-              textDecoration:"none", transition:"color .2s", userSelect:"none" }}
-            onMouseEnter={e => e.currentTarget.style.color="#d7b56d"}
-            onMouseLeave={e => e.currentTarget.style.color="#978b7c"}
-          >
-            Concierge Clínico Analytics
-          </span>
-        </button>
-      </div>
+          <span className="brand-sub">Concierge Clínico Analytics</span>
+        </span>
+      </button>
+      <button className="brand" onClick={onHome} aria-label="Voltar ao início" style={{ opacity: 0, width: 1, height: 1, overflow: "hidden", padding: 0 }} />
     </header>
   );
 }
@@ -731,24 +695,18 @@ function Stepper({ step }) {
   );
 }
 
-function Field({ label, value, onChange, error, type = "text", placeholder, noNumbers = false, hint }) {
-  const handleChange = (event) => {
-    let v = event.target.value;
-    if (noNumbers) v = v.replace(/[0-9]/g, "");
-    onChange(v);
-  };
+function Field({ label, value, onChange, error, type = "text", placeholder }) {
   return (
     <div className="field">
       <label>{label}</label>
       <input
         className={error ? "error" : ""}
         value={value}
-        onChange={handleChange}
+        onChange={(event) => onChange(event.target.value)}
         type={type}
         placeholder={placeholder}
         inputMode={type === "number" ? "decimal" : undefined}
       />
-      {hint && !error && <div style={{ fontSize: 11, color: "#978b7c", marginTop: 4, lineHeight: 1.4 }}>{hint}</div>}
       {error && <div className="error-msg">{error}</div>}
     </div>
   );
@@ -951,21 +909,7 @@ export default function App() {
     const next = {};
     if (!form.owner.trim()) next.owner = "Informe o nome do responsável.";
     if (!form.clinic.trim()) next.clinic = "Informe o nome da clínica.";
-
-    // WhatsApp: precisa ter pelo menos 10 dígitos (DDD + número)
-    const waDigits = (form.whatsapp || "").replace(/\D/g, "");
-    if (!form.whatsapp.trim()) {
-      next.whatsapp = "Informe um WhatsApp para retorno.";
-    } else if (waDigits.length < 10) {
-      next.whatsapp = "WhatsApp inválido. Informe DDD + número (ex: 11 99999-9999).";
-    }
-
-    // Instagram: se preenchido, precisa ter ao menos 3 caracteres e nenhum espaço
-    const ig = (form.instagram || "").trim();
-    if (ig && (ig.length < 3 || /\s/.test(ig))) {
-      next.instagram = "Instagram inválido. Use @perfil sem espaços (ex: @clinicaexemplo).";
-    }
-
+    if (!form.whatsapp.trim()) next.whatsapp = "Informe um WhatsApp para retorno.";
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -1071,16 +1015,16 @@ export default function App() {
     setLoadingStats(true);
     setAdminError("");
     try {
-      const response = await fetch("/api/admin", {
+      const response = await fetch("/api/admin/stats", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "stats", password }),
+        body: JSON.stringify({ password }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Não foi possível carregar o painel.");
       setStats(data);
     } catch (error) {
-      setAdminError(error.message || "Falha ao carregar analytics.");
+      setAdminError(error.mêssage || "Falha ao carregar analytics.");
     } finally {
       setLoadingStats(false);
     }
@@ -1089,17 +1033,17 @@ export default function App() {
   const loginAdmin = async () => {
     setAdminError("");
     try {
-      const response = await fetch("/api/admin", {
+      const response = await fetch("/api/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "login", password: adminPw }),
+        body: JSON.stringify({ password: adminPw }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Senha incorreta.");
       setAdminOk(true);
       await loadStats(adminPw);
     } catch (error) {
-      setAdminError(error.message || "Senha incorreta.");
+      setAdminError(error.mêssage || "Senha incorreta.");
     }
   };
 
@@ -1123,21 +1067,17 @@ export default function App() {
         <section className="hero">
           <div>
             <div className="eyebrow">Diagnóstico comercial para clínicas premium</div>
-            <h1 className="title">Uma secretária estratégica pode aumentar o faturamento<br/><span style={{color:"#d7b56d"}}>sem aumentar o tráfego.</span></h1>
+            <h1 className="title">Descubra se sua secretária está protegendo ou vazando receita.</h1>
             <p className="subtitle">
-              Seu atendimento na cadeira é impecável. Descubra se a sua recepção está vendendo na mesma altura!
+              Um diagnóstico visual e financeiro que cruza perfil comportamental, taxa de conversão,
+              potencial comercial e sinais de prontidão para a Fase 2 da VERT4.
             </p>
             <div className="actions">
-              <button
-                className="btn btn-primary"
-                style={{ fontSize:17, padding:"18px 32px", letterSpacing:.3,
-                  boxShadow:`0 8px 32px rgba(215,181,109,.35)`, minHeight:58 }}
-                onClick={() => go("form_id")}
-              >
+              <button className="btn btn-primary" onClick={() => go("form_id")}>
                 Iniciar diagnóstico
-                <Icon name="arrow" size={20} />
+                <Icon name="arrow" size={18} />
               </button>
-              <span className="micro">Leva cerca de 4 minutos. Resultado imediato.</span>
+              <span className="micro">Leva cerca de 4 minutos. Resultado imediato e leitura premium.</span>
             </div>
           </div>
 
@@ -1146,31 +1086,23 @@ export default function App() {
               <MetricCard icon="diagnosis" label="Método" value="DISC + Receita" sub="Perfil observado conectado ao impacto financeiro." />
               <MetricCard icon="conversion" label="Benchmark" value="50%" sub="Referência de conversão semanal para comparação." color={V.green} />
               <MetricCard icon="analytics" label="Analytics" value="Fase 2" sub="Cliques, origem, tempo e interações rastreados." color={V.blue} />
-              <MetricCard icon="strategy" label="Resultado" value="Plano 30 dias" sub="Rotina semanal com metas mensuráveis e scripts por perfil." color={V.gold2} />
+              <MetricCard icon="strategy" label="Saída" value="Plano" sub="Próximos passos claros para o dono da clínica." color={V.gold2} />
             </div>
           </Panel>
         </section>
 
         <section className="grid-3" style={{ marginTop: 22 }}>
           {[
-            ["growth",  "Crescimento com critério",  "Mostra onde a clínica pode ganhar receita antes de aumentar tráfego.", false],
-            ["result",  "Decisão menos emocional",   "Ajuda a separar simpatia, esforço e performance comercial real.",     false],
-            ["result",  "Resultado em 15 minutos",   "Receba um laudo comportamental completo com plano de desenvolvimento individual e ação imediata.", true],
-          ].map(([icon, title, text, highlight]) => (
-            <div
-              className="glass panel-pad"
-              key={title}
-              style={highlight ? {
-                border:"1.5px solid rgba(215,181,109,.55)",
-                background:"linear-gradient(145deg, rgba(215,181,109,.1), rgba(7,21,18,.6))",
-                boxShadow:"0 8px 32px rgba(215,181,109,.14)",
-              } : {}}
-            >
-              <div className="metric-icon" style={highlight ? { color:"#d7b56d" } : {}}>
+            ["growth", "Crescimento com critério", "Mostra onde a clínica pode ganhar receita antes de aumentar tráfego."],
+            ["result", "Decisão menos emocional", "Ajuda a separar simpatia, esforço e performance comercial real."],
+            ["analytics", "Painel para administrador", "Registra canais acionados, origem, tempo antes do clique e funil de conversão."],
+          ].map(([icon, title, text]) => (
+            <div className="glass panel-pad" key={title}>
+              <div className="metric-icon">
                 <Icon name={icon} />
               </div>
-              <h3 style={{ margin:"0 0 8px", fontSize: highlight ? 20 : 18, color: highlight ? "#d7b56d" : undefined }}>{title}</h3>
-              <p className="section-copy" style={{ fontSize: highlight ? 15 : 14, color: highlight ? "#c9c0b3" : undefined }}>{text}</p>
+              <h3 style={{ margin: "0 0 8px", fontSize: 18 }}>{title}</h3>
+              <p className="section-copy" style={{ fontSize: 14 }}>{text}</p>
             </div>
           ))}
         </section>
@@ -1187,11 +1119,11 @@ export default function App() {
         <p className="section-copy">Esses dados personalizam o laudo e permitem relacionar o diagnóstico aos cliques de Fase 2 no painel admin.</p>
 
         <div className="grid-2" style={{ marginTop: 24 }}>
-          <Field label="Responsável" value={form.owner} onChange={(value) => updateForm("owner", value)} error={errors.owner} placeholder="Nome do dono ou gestor" noNumbers />
+          <Field label="Responsável" value={form.owner} onChange={(value) => updateForm("owner", value)} error={errors.owner} placeholder="Nome do dono ou gestor" />
           <Field label="Clínica" value={form.clinic} onChange={(value) => updateForm("clinic", value)} error={errors.clinic} placeholder="Nome da clínica" />
           <Field label="WhatsApp" value={form.whatsapp} onChange={(value) => updateForm("whatsapp", value)} error={errors.whatsapp} placeholder="(00) 00000-0000" />
           <Field label="Instagram" value={form.instagram} onChange={(value) => updateForm("instagram", value)} placeholder="@perfil" />
-          <Field label="Secretária avaliada" value={form.secretary} onChange={(value) => updateForm("secretary", value)} placeholder="Opcional" noNumbers />
+          <Field label="Secretária avaliada" value={form.secretary} onChange={(value) => updateForm("secretary", value)} placeholder="Opcional" />
         </div>
 
         <div className="actions">
@@ -1223,7 +1155,7 @@ export default function App() {
 
         <div className="grid-2" style={{ marginTop: 24 }}>
           <Field label="Leads orgânicos por semana" type="number" value={form.orgLeads} onChange={(value) => updateForm("orgLeads", value)} error={errors.orgLeads} placeholder="Ex.: 18" />
-          <Field label="Leads por tráfego pago por semana" type="number" value={form.paidLeads} onChange={(value) => updateForm("paidLeads", value)} error={errors.paidLeads} placeholder="Ex.: 32" hint="Contatos vindos de anúncios pagos (Meta Ads, Google Ads etc.)" />
+          <Field label="Leads pagos por semana" type="number" value={form.paidLeads} onChange={(value) => updateForm("paidLeads", value)} error={errors.paidLeads} placeholder="Ex.: 32" />
           <Field label="Consultas agendadas por semana" type="number" value={form.appointments} onChange={(value) => updateForm("appointments", value)} error={errors.appointments} placeholder="Ex.: 14" />
           <Field label="Ticket médio por paciente" type="number" value={form.ticket} onChange={(value) => updateForm("ticket", value)} error={errors.ticket} placeholder="Ex.: 1200" />
         </div>
@@ -1366,7 +1298,7 @@ function Report({ result, narrative, tab, setTab, trackTab, openTracked, reset }
             </h1>
             <p className="section-copy">
               Perfil {profile} ({profileData.disc}) para {form.secretary || "a secretária"} em {form.clinic || "sua clínica"}.
-              {mixed ? ` Há sinal de perfil misto entre ${mixedStr.split("/").map(p => PROFILE[p]?.name || p).join(" e ")}, o que aumenta a importancia da Fase 2.` : " O padrão dominante apareceu com boa consistencia."}
+              {mixed ? ` Há sinal de perfil misto ${mixedStr}, o que aumenta a importancia da Fase 2.` : " O padrão dominante apareceu com boa consistencia."}
             </p>
           </div>
           <MiniDonut value={potential.score} label={potential.label} />
@@ -1464,29 +1396,9 @@ function Report({ result, narrative, tab, setTab, trackTab, openTracked, reset }
           </Panel>
 
           <Panel>
-            <div className="eyebrow">Insights e pontos de atenção</div>
+            <div className="eyebrow">Insights automaticos</div>
             <h2 className="section-title">O que os dados estão sinalizando.</h2>
             <List items={intelligence.insights} />
-            <div className="glass panel-pad" style={{ marginTop: 18 }}>
-              <strong style={{ color: V.gold2 }}>Pontos fortes identificados:</strong>
-              <ul style={{ paddingLeft: 18, marginTop: 8 }}>
-                {intelligence.strengths.map((s) => (
-                  <li key={s} className="section-copy" style={{ marginBottom: 4 }}>{s}</li>
-                ))}
-              </ul>
-            </div>
-            <div className="glass panel-pad" style={{ marginTop: 12 }}>
-              <strong style={{ color: V.red }}>Pontos de atenção:</strong>
-              <ul style={{ paddingLeft: 18, marginTop: 8 }}>
-                {intelligence.weaknesses.map((w) => (
-                  <li key={w} className="section-copy" style={{ marginBottom: 4 }}>{w}</li>
-                ))}
-              </ul>
-            </div>
-            <div className="glass panel-pad" style={{ marginTop: 12, borderLeft: `3px solid ${V.green}` }}>
-              <strong style={{ color: V.green }}>Oportunidade de desenvolvimento:</strong>
-              <p className="section-copy" style={{ marginTop: 8 }}>{intelligence.opportunity}</p>
-            </div>
           </Panel>
 
           <Panel>
@@ -1504,7 +1416,7 @@ function Report({ result, narrative, tab, setTab, trackTab, openTracked, reset }
 
           <Panel>
             <div className="eyebrow">Camada IA</div>
-            <h2 className="section-title">Comentario adaptativo.</h2>
+            <h2 className="section-title">Comentário adaptativo.</h2>
             {aiBlocks.length ? (
               <div className="list">
                 {aiBlocks.map((block) => (
@@ -1512,9 +1424,13 @@ function Report({ result, narrative, tab, setTab, trackTab, openTracked, reset }
                 ))}
               </div>
             ) : (
-              <p className="section-copy">
-                A leitura local já foi gerada com base nas respostas. Para comentarios adicionais por IA, configure a chave do provedor no backend.
-              </p>
+              <div className="glass panel-pad" style={{ display:"flex", alignItems:"center", gap:14 }}>
+                <div style={{ width:28, height:28, borderRadius:"50%", border:"2px solid rgba(215,181,109,.3)", borderTopColor:"#d7b56d", animation:"spin .8s linear infinite", flexShrink:0 }}/>
+                <div>
+                  <p className="section-copy" style={{ margin:0, fontWeight:600 }}>Gerando análise personalizada com IA...</p>
+                  <p className="section-copy" style={{ margin:0, fontSize:12, opacity:.7 }}>Isso pode levar alguns segundos.</p>
+                </div>
+              </div>
             )}
           </Panel>
         </div>
@@ -1534,7 +1450,7 @@ function Report({ result, narrative, tab, setTab, trackTab, openTracked, reset }
               {[
                 ["Semana 1", "Auditar conversas e classificar perdas."],
                 ["Semana 2", "Implantar roteiro de qualificação e convite."],
-                ["Semana 3", "Treinar contorno de objeções reais e medir follow-up."],
+                ["Semana 3", "Treinar objecoes reais e medir follow-up."],
                 ["Semana 4", "Comparar taxa, ajustar playbook e decidir Fase 2."],
               ].map(([week, text]) => (
                 <div className="glass panel-pad" key={week}>
@@ -1554,7 +1470,7 @@ function Report({ result, narrative, tab, setTab, trackTab, openTracked, reset }
               <div>
                 <div className="eyebrow">Convite para Fase 2</div>
                 <h2 className="section-title" style={{ fontSize: "clamp(34px, 5vw, 62px)" }}>
-                  O diagnóstico limpou o terreno. A Fase 2 é para analisar o perfil comportamental de sua secretária e ativar o lado comercial dela.
+                  Agora é hora de confirmar o que o diagnóstico apenas sinalizou.
                 </h2>
                 <p className="section-copy" style={{ fontSize: 17 }}>
                   {intelligence.ctaAngle} A Fase 2 aprofunda o estilo natural, pressão comportamental, aderência comercial e recomendação de desenvolvimento.
@@ -1601,44 +1517,14 @@ function Report({ result, narrative, tab, setTab, trackTab, openTracked, reset }
         </div>
       )}
 
-      <div style={{ marginTop: 24 }}>
+      <div className="actions" style={{ justifyContent: "space-between" }}>
+        <button className="btn btn-ghost" onClick={reset}>Novo diagnóstico</button>
         {tab !== 4 && (
-          <div style={{
-            background: `linear-gradient(135deg, rgba(215,181,109,.12), rgba(163,58,70,.1))`,
-            border: "1.5px solid rgba(215,181,109,.45)",
-            borderRadius: 14,
-            padding: "22px 24px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-            gap: 14,
-            marginBottom: 12,
-          }}>
-            <div>
-              <div className="eyebrow" style={{ color: V.gold }}>Este diagnóstico está incompleto</div>
-              <p className="section-copy" style={{ margin: 0, maxWidth: 440 }}>
-                A Fase 2 revela o estilo natural, o risco de burnout silencioso e o PDI cirúrgico para {result?.form?.secretary || "sua secretária"}.
-              </p>
-            </div>
-            <button
-              className="btn btn-primary"
-              style={{ fontSize: 15, padding: "14px 28px", boxShadow: `0 6px 24px rgba(215,181,109,.35)` }}
-              onClick={() => changeTab(4)}
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{display:"inline",verticalAlign:"middle",marginRight:4}}><path d="M8 1L10.2 6.2L16 8L10.2 9.8L8 15L5.8 9.8L0 8L5.8 6.2L8 1Z" fill="#d7b56d" stroke="none"/></svg> Liberar Fase 2 Agora
-              <Icon name="arrow" size={18} />
-            </button>
-          </div>
+          <button className="btn btn-primary" onClick={() => changeTab(4)}>
+            Ver Fase 2 recomendada
+            <Icon name="arrow" size={18} />
+          </button>
         )}
-        <div className="actions" style={{ justifyContent: "space-between" }}>
-          <button className="btn btn-ghost" onClick={reset}>Novo diagnóstico</button>
-          {tab === 4 && (
-            <button className="btn btn-ghost" onClick={() => changeTab(0)}>
-              ← Voltar ao diagnóstico
-            </button>
-          )}
-        </div>
       </div>
     </>
   );
@@ -1674,17 +1560,13 @@ function AdminPanel({ adminOk, adminPw, setAdminPw, adminError, loginAdmin, load
     );
   }
 
-  const avgPaidLeads = stats?.avg_paid_leads != null
-    ? Number(stats.avg_paid_leads).toLocaleString("pt-BR", { maximumFractionDigits: 1 })
-    : "—";
-
   const kpis = [
-    ["users",     "Visitantes",           stats?.total_visitors || 0,                 "Sessões com consentimento.",             V.gold   ],
-    ["diagnosis", "Fase 1 completa",       stats?.completed_diag || 0,                 "Diagnósticos concluídos.",               V.green  ],
-    ["analytics", "Leads por tráfego",     avgPaidLeads,                               "Média de leads pagos informados.",       V.blue   ],
-    ["conversion","Fase 1 → Fase 2",       pct(stats?.phase1_to_phase2_rate || 0),     "Taxa de avanço para a segunda fase.",    V.gold2  ],
-    ["whatsapp",  "WhatsApp",              channelSummary.whatsapp?.count || 0,        "Cliques registrados no canal.",          V.green2 ],
-    ["clock",     "Tempo médio",           formatDuration(stats?.avg_duration_sec||0), "Duração média de sessão.",               V.blue   ],
+    ["users", "Visitantes", stats?.total_visitors || 0, "Sessões com consentimento.", V.gold],
+    ["diagnosis", "Fase 1 completa", stats?.completed_diag || 0, "Diagnósticos concluídos.", V.green],
+    ["conversion", "Fase 1 -> Fase 2", pct(stats?.phase1_to_phase2_rate || 0), "Taxa de avanço para a segunda fase.", V.gold2],
+    ["whatsapp", "WhatsApp", channelSummary.whatsapp?.count || 0, "Cliques registrados no canal.", V.green2],
+    ["clock", "Tempo médio", formatDuration(stats?.avg_duration_sec || 0), "Duração média de sessão.", V.blue],
+    ["analytics", "Cliques sociais", stats?.total_channel_clicks || 0, "WhatsApp, Instagram e LinkedIn.", V.red],
   ];
 
   const funnel = [
@@ -1710,10 +1592,10 @@ function AdminPanel({ adminOk, adminPw, setAdminPw, adminError, loginAdmin, load
           <button
             className="btn btn-ghost"
             onClick={async () => {
-              const response = await fetch("/api/admin", {
+              const response = await fetch("/api/admin/export", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ action: "export", password: adminPw }),
+                body: JSON.stringify({ password: adminPw }),
               });
               const blob = await response.blob();
               const url = URL.createObjectURL(blob);
