@@ -100,12 +100,12 @@ const QUESTIONS = [
   {
     id: "DA4",
     dim: "Resultado comercial",
-    q: "Sendo completamente honesto(a): como você descreveria o resultado comercial da sua secretária?",
+    q: "Sendo completamente honesto: como você descreveria o resultado comercial da sua secretária?",
     opts: [
       { t: "Mantém a operação funcionando, mas não gera agendamentos de forma proativa.", p: 1 },
       { t: "É adorada pelas pacientes, mas os números de conversão de leads novos são fracos.", p: 2 },
       { t: "Converte bem quando a paciente já tem interesse claro, mas raramente vende de verdade.", p: 3 },
-      { t: "Máquina de agendamentos. Quando um lead entra, a probabilidade de fechar é alta.", p: 4 },
+      { t: "Maquina de agendamentos. Quando um lead entra, a probabilidade de fechar ? alta.", p: 4 },
     ],
   },
   {
@@ -126,7 +126,7 @@ const CHANNELS = [
     id: "whatsapp",
     label: "WhatsApp",
     handle: "+55 69 9983-5337",
-    url: "https://wa.me/5569998353370?text=Ola%20Aline.%20Fiz%20o%20Diagnostico%20VERT4%20e%20quero%20liberar%20a%20Fase%202.",
+    url: "https://wa.me/556999835337?text=Ol%C3%A1%20Aline!%20Acabei%20de%20fazer%20o%20Diagn%C3%B3stico%20VERT4%20e%20quero%20liberar%20a%20Fase%202.",
   },
   {
     id: "instagram",
@@ -216,8 +216,7 @@ function calcFin(form) {
   const weeklyRevenue = appointments * ticket;
   const monthlyRevenue = weeklyRevenue * 4.33;
   const weeklyLoss = lost * ticket;
-  // Limitamos o vazamento a 8x o ticket semanal para evitar projeções irreais
-  const monthlyLoss = Math.min(weeklyLoss * 4.33, ticket * 8 * 4.33);
+  const monthlyLoss = weeklyLoss * 4.33;
 
   return {
     org,
@@ -310,7 +309,7 @@ function buildIntelligence(result) {
       ? `A taxa atual esta ${pct(conversionGap)} abaixo do benchmark VERT4 de 50%. Isso representa cerca de ${fin.lost.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} agendamentos por semana que poderiam estar entrando na agenda.`
       : `A taxa atual supera o benchmark de 50%. O desafio deixa de ser apenas conversão e passa a ser previsibilidade, qualidade do lead e escala sem queda de experiência.`,
     fin.monthlyLoss > 0
-      ? `O vazamento estimado é de ${money(fin.monthlyLoss)} por mês. Este número é uma estimativa baseada nos dados informados — não uma garantia de ganho. Representa o valor que deixa de ser capturado quando lead e agenda não se encontram.`
+      ? `O vazamento estimado e de ${money(fin.monthlyLoss)} por mês. Esse número não e uma promêssa de ganho; é uma fotografia do valor que deixa de ser capturado quando lead e agenda não se encontram.`
       : `Não há vazamento contra o benchmark neste cenario. Mesmo assim, vale investigar se o resultado depende de uma pessoa especifica ou de um processo replicável.`,
     fin.roiAlert
       ? `Há um alerta de ROI: o volume pago supera o orgânico e a conversão esta abaixo de 25%. Antes de aumentar tráfego, a clínica deveria proteger a etapa de atendimento.`
@@ -345,48 +344,35 @@ function buildIntelligence(result) {
 async function genNarrative(payload) {
   const { profile, mixed, mixedStr, fin, form, potential } = payload;
   const profileData = PROFILE[profile];
-  const answerDescriptions = {
-    1: { DA1:"organiza processos e agenda com exatidão",     DA2:"envia preço direto e aguarda retorno",   DA3:"encerra sem retomar objeção",            DA4:"mantém operação mas não gera agendamentos proativamente", DA5:"organiza agenda e fichas técnicas" },
-    2: { DA1:"cria ambiente caloroso e é lembrada pelo acolhimento", DA2:"conversa muito mas raramente converte", DA3:"concorda para evitar conflito",          DA4:"é adorada mas conversão de novos leads é fraca",           DA5:"responde mensagens e cuida das pacientes" },
-    3: { DA1:"explica protocolos com domínio clínico",        DA2:"explica tratamento antes do preço",      DA3:"argumenta tecnicamente sobre qualidade",  DA4:"converte quando há interesse claro mas raramente vende",   DA5:"estuda protocolos e tira dúvidas técnicas" },
-    4: { DA1:"de olho em leads, inquieta quando escapa oportunidade", DA2:"qualifica lead e insiste no agendamento", DA3:"faz perguntas e esgota possibilidades", DA4:"máquina de agendamentos com alta probabilidade de fechar", DA5:"aciona lista de leads novos para converter" },
-  };
-  const answers = payload.answers || {};
-  const answerSummary = Object.entries(answers).map(([q,a]) =>
-    answerDescriptions[a]?.[q] ? \`\${q}: \${answerDescriptions[a][q]}\` : ""
-  ).filter(Boolean).join("\n");
+  const prompt = `Você ? o motor analitico premium da VERT4 para clínicas de saúde, estética ? alta performance comercial.
 
-  const prompt = \`Você é o motor analítico da VERT4, especialista em comportamento comercial de secretárias em clínicas de estética e saúde.
+Gere uma análise em JSON puro, sem markdown, com comentarios humanos, precisos e persuasivos.
 
-DADOS DA CLÍNICA:
-Clínica: \${form.clinic || "Não informado"}
-Responsável: \${form.owner || "Não informado"}
-Secretária avaliada: \${form.secretary || "a secretária"}
-Perfil DISC identificado: \${profile} - \${profileData.name} (\${profileData.disc})\${mixed ? \`, misto com \${mixedStr}\` : ""}
-Leads por semana: \${fin.total} (\${fin.org} orgânicos + \${fin.paid} pagos)
-Agendamentos por semana: \${fin.appointments}
-Taxa de conversão atual: \${fin.conversion}% (benchmark VERT4: 50%)
-Ticket médio: \${money(fin.ticket)}
-Vazamento mensal estimado: \${money(fin.monthlyLoss)}
-Alerta ROI tráfego pago: \${fin.roiAlert ? "SIM — conversão abaixo de 25% com volume pago alto" : "NÃO"}
+Dados:
+Clínica: ${form.clinic || "Não informado"}
+Dono(a): ${form.owner || "Não informado"}
+Secretária: ${form.secretary || "Secretária"}
+Perfil observado: ${profile} - ${profileData.name} (${profileData.disc})${mixed ? `, misto ${mixedStr}` : ""}
+Leads semanais: ${fin.total}
+Consultas semanais: ${fin.appointments}
+Taxa de conversão: ${fin.conversion}%
+Ticket médio: ${money(fin.ticket)}
+Vazamento mensal estimado: ${money(fin.monthlyLoss)}
+Potencial: ${potential.label} (${potential.score}/100)
+Alerta ROI de tráfego: ${fin.roiAlert ? "SIM" : "NAO"}
 
-RESPOSTAS DO QUESTIONÁRIO:
-\${answerSummary}
-
-REGRAS:
-- Use o nome da secretária (\${form.secretary || "ela"}) em vez de "a secretária"
-- Seja direto, humano e específico. Nada genérico.
-- Conecte cada observação ao comportamento real descrito nas respostas
-- Exemplo correto: "Como \${form.secretary || "ela"} tende a \${answerDescriptions[answers.DA3]?.["DA3"] || "evitar objeções"}, leads que dizem 'vou pensar' raramente voltam."
-- Exemplo errado: "Sua secretária precisa melhorar a conversão."
-- Posicione a Fase 2 como consequência lógica, sem promessa exagerada
-- Responda SOMENTE com JSON válido, sem markdown:
+Regras:
+- Evite frases genericas.
+- Explique com simplicidade para dono de clínica entender.
+- Traga ponto forte, ponto fraco e oportunidade.
+- Posicione a Fase 2 como próximo passo logico, sem promêssa exagerada.
+- Responda somente com JSON valido:
 {
-  "executive": "3-4 frases: leitura do padrão comportamental observado. Cite nome, perfil e comportamento específico das respostas.",
-  "hiddenRisk": "2-3 frases: risco que o dono não está vendo. Conecte ao comportamento das respostas.",
-  "commercialInsight": "2-3 frases: o que esse padrão custa em reais. Use os números reais fornecidos.",
-  "nextMove": "2 frases: próximo passo concreto e lógico. Mencione a Fase 2 como investigação, não como solução mágica."
-}\`;
+  "executive":"4 frases de leitura executiva",
+  "hiddenRisk":"3 frases sobre risco invisivel",
+  "commercialInsight":"3 frases conectando comportamento e dinheiro",
+  "nextMove":"2 frases de próximo passo"
+}`;
 
   try {
     const response = await fetch("/api/analyze", {
@@ -1063,7 +1049,13 @@ export default function App() {
 
   const openTracked = (channel, label, url) => {
     trackCTA(label, { channel, destination: url, phase: "fase2" });
-    window.open(url, "_blank", "noopener,noreferrer");
+    // Tenta window.open; se bloqueado por popup blocker, usa link direto
+    const w = window.open(url, "_blank", "noopener,noreferrer");
+    if (!w || w.closed || typeof w.closed === "undefined") {
+      const a = document.createElement("a");
+      a.href = url; a.target = "_blank"; a.rel = "noopener noreferrer";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }
   };
 
   const shell = (children) => (
@@ -1081,7 +1073,7 @@ export default function App() {
         <section className="hero">
           <div>
             <div className="eyebrow">Diagnóstico comercial para clínicas premium</div>
-            <h1 className="title">Seu atendimento na cadeira é impecável. Descubra se a sua recepção está vendendo na mesma altura!</h1>
+            <h1 className="title">Descubra se sua secretária está protegendo ou vazando receita.</h1>
             <p className="subtitle">
               Um diagnóstico visual e financeiro que cruza perfil comportamental, taxa de conversão,
               potencial comercial e sinais de prontidão para a Fase 2 da VERT4.
@@ -1430,7 +1422,7 @@ function Report({ result, narrative, tab, setTab, trackTab, openTracked, reset }
 
           <Panel>
             <div className="eyebrow">Camada IA</div>
-            <h2 className="section-title">Comentário adaptativo por IA.</h2>
+            <h2 className="section-title">Comentario adaptativo.</h2>
             {aiBlocks.length ? (
               <div className="list">
                 {aiBlocks.map((block) => (
@@ -1438,10 +1430,9 @@ function Report({ result, narrative, tab, setTab, trackTab, openTracked, reset }
                 ))}
               </div>
             ) : (
-              <div style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 0" }}>
-                <div style={{ width:24,height:24,borderRadius:"50%",border:"2px solid rgba(215,181,109,.25)",borderTopColor:"#d7b56d",animation:"spin .8s linear infinite",flexShrink:0 }}/>
-                <p className="section-copy" style={{ margin:0 }}>Gerando análise personalizada com IA... Aguarde alguns segundos.</p>
-              </div>
+              <p className="section-copy">
+                A leitura local já foi gerada com base nas respostas. Para comentarios adicionais por IA, configure a chave do provedor no backend.
+              </p>
             )}
           </Panel>
         </div>
@@ -1528,8 +1519,27 @@ function Report({ result, narrative, tab, setTab, trackTab, openTracked, reset }
         </div>
       )}
 
-      <div className="actions" style={{ justifyContent: "space-between" }}>
-        <button className="btn btn-ghost" onClick={reset}>Novo diagnóstico</button>
+      <div className="actions" style={{ justifyContent: "space-between", flexWrap:"wrap", gap:10 }}>
+        <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+          {/* Novo diagnóstico */}
+          <button className="btn btn-ghost" onClick={reset}>
+            Novo diagnóstico
+          </button>
+          {/* Salvar PDF — mesmo nível, fácil de ver */}
+          <button
+            className="btn btn-ghost"
+            style={{ borderColor:"rgba(215,181,109,.5)", color:"#d7b56d" }}
+            onClick={() => {
+              const orig = document.title;
+              document.title = `Laudo VERT4 - ${result?.form?.clinic || "Clinica"} - ${new Date().toLocaleDateString("pt-BR")}`;
+              window.print();
+              document.title = orig;
+            }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{marginRight:6,verticalAlign:"middle"}}><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Salvar PDF
+          </button>
+        </div>
         {tab !== 4 && (
           <button className="btn btn-primary" onClick={() => changeTab(4)}>
             Ver Fase 2 recomendada
