@@ -917,16 +917,15 @@ export default function App() {
 
   const [cookieConsent, setCookieConsent] = useState(() => localStorage.getItem("vert4_cookie_consent"));
   const [step, setStep] = useState("intro");
-  const [form, setForm] = useState({
-    owner: "",
-    clinic: "",
-    instagram: "",
-    whatsapp: "",
-    secretary: "",
-    orgLeads: "",
-    paidLeads: "",
-    appointments: "",
-    ticket: "",
+
+  // Carrega form salvo do localStorage (preenche campos automaticamente)
+  const [form, setForm] = useState(() => {
+    try {
+      const saved = localStorage.getItem("vert4_form_data");
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return { owner:"", clinic:"", instagram:"", whatsapp:"", secretary:"",
+             orgLeads:"", paidLeads:"", appointments:"", ticket:"" };
   });
   const [errors, setErrors] = useState({});
   const [qIndex, setQIndex] = useState(0);
@@ -953,7 +952,12 @@ export default function App() {
   const scrollTop = () => topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   const updateForm = (key, value) => {
-    setForm((current) => ({ ...current, [key]: value }));
+    setForm((current) => {
+      const next = { ...current, [key]: value };
+      // Salva dados de identificação no localStorage
+      try { localStorage.setItem("vert4_form_data", JSON.stringify(next)); } catch {}
+      return next;
+    });
     setErrors((current) => ({ ...current, [key]: "" }));
     if (["owner", "clinic", "instagram", "whatsapp", "secretary"].includes(key)) {
       setLeadContext({ [key]: value });
@@ -1068,6 +1072,8 @@ export default function App() {
     saveLead(leadPayload);
     setLeads(loadLeads());
     trackComplete(leadPayload);
+    // Salva resultado para mostrar na próxima visita
+    try { localStorage.setItem("vert4_last_result", JSON.stringify(completeResult)); } catch {}
     go("processing");
 
     // Salva diagnóstico completo no Supabase
@@ -1084,6 +1090,7 @@ export default function App() {
 
     const ai = await genNarrative(completeResult);
     setNarrative(ai);
+    try { if (ai) localStorage.setItem("vert4_last_narrative", JSON.stringify(ai)); } catch {}
     go("report");
   };
 
@@ -1155,10 +1162,59 @@ export default function App() {
               potencial comercial e sinais de prontidão para a Fase 2 da VERT4.
             </p>
             <div className="actions">
-              <button className="btn btn-primary" onClick={() => go("form_id")}>
-                Iniciar diagnóstico
-                <Icon name="arrow" size={18} />
-              </button>
+              {(() => {
+                try {
+                  const prev = localStorage.getItem("vert4_last_result");
+                  if (prev) {
+                    const parsed = JSON.parse(prev);
+                    return (
+                      <div style={{ display:"flex", flexDirection:"column", gap:12, alignItems:"flex-start" }}>
+                        <div style={{ background:"rgba(215,181,109,.1)", border:"1px solid rgba(215,181,109,.35)",
+                          borderRadius:12, padding:"14px 18px", width:"100%" }}>
+                          <div style={{ fontSize:11, color:"#d7b56d", marginBottom:4, textTransform:"uppercase", letterSpacing:1 }}>
+                            Diagnóstico anterior encontrado
+                          </div>
+                          <div style={{ fontWeight:700, marginBottom:2 }}>
+                            {parsed?.form?.clinic || "Clínica"} — {parsed?.form?.owner || ""}
+                          </div>
+                          <div style={{ fontSize:13, opacity:.7 }}>
+                            {parsed?.form?.secretary || "secretária"} · Perfil {parsed?.profile}
+                          </div>
+                        </div>
+                        <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+                          <button className="btn btn-primary" onClick={() => {
+                            try {
+                              const prev = localStorage.getItem("vert4_last_result");
+                              const narrative = localStorage.getItem("vert4_last_narrative");
+                              if (prev) {
+                                setResult(JSON.parse(prev));
+                                if (narrative) setNarrative(JSON.parse(narrative));
+                                go("report");
+                              }
+                            } catch { go("form_id"); }
+                          }}>
+                            Ver meu resultado
+                            <Icon name="arrow" size={18} />
+                          </button>
+                          <button className="btn btn-ghost" onClick={() => {
+                            localStorage.removeItem("vert4_last_result");
+                            localStorage.removeItem("vert4_last_narrative");
+                            go("form_id");
+                          }}>
+                            Novo diagnóstico
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+                } catch {}
+                return (
+                  <button className="btn btn-primary" onClick={() => go("form_id")}>
+                    Iniciar diagnóstico
+                    <Icon name="arrow" size={18} />
+                  </button>
+                );
+              })()}
               <span className="micro">Leva cerca de 4 minutos. Resultado imediato e leitura premium.</span>
             </div>
           </div>
@@ -1636,206 +1692,223 @@ function Report({ result, narrative, tab, setTab, trackTab, openTracked, reset }
 }
 
 function AdminPanel({ adminOk, adminPw, setAdminPw, adminError, loginAdmin, loadingStats, stats, leads, refresh, logout }) {
+  const [selected, setSelected] = useState(null);
   const diagnostics = stats?.diagnostics?.length ? stats.diagnostics : leads;
-  const channelSummary = stats?.channel_summary || {};
-  const clicks = stats?.channel_clicks || [];
-  const originData = stats?.origin_summary
-    ? Object.entries(stats.origin_summary).map(([label, value]) => ({ label, value }))
-    : [];
 
+  const money = (v) => Number(v || 0).toLocaleString("pt-BR", { style:"currency", currency:"BRL" });
+
+  // ── TELA DE LOGIN ─────────────────────────────────────────────
   if (!adminOk) {
     return (
-      <Panel style={{ maxWidth: 460, margin: "70px auto" }}>
-        <div className="metric-icon">
-          <Icon name="lock" />
+      <Panel style={{ maxWidth:460, margin:"70px auto" }}>
+        <div className="metric-icon"><Icon name="lock" /></div>
+        <div className="eyebrow" style={{ marginTop:12 }}>Painel Administrador</div>
+        <h2 className="section-title">Analytics VERT4</h2>
+        <div className="field" style={{ marginTop:20 }}>
+          <label>Senha</label>
+          <input
+            type="password" value={adminPw} placeholder="••••••••"
+            className={adminError ? "error" : ""}
+            onChange={(e) => setAdminPw(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") loginAdmin(); }}
+          />
+          {adminError && <div className="error-msg">{adminError}</div>}
         </div>
-        <div className="eyebrow">Painel administrador</div>
-        <h1 className="section-title">Analytics VERT4</h1>
-        <p className="section-copy">Acesse o painel avançado de Fase 2, cliques por canal, origem e funil de conversão.</p>
-        <div style={{ marginTop: 22 }}>
-          <Field label="Senha" type="password" value={adminPw} onChange={setAdminPw} error={adminError} placeholder="Digite a senha" />
-        </div>
-        <div className="actions">
+        <div className="actions" style={{ marginTop:16 }}>
           <button className="btn btn-primary" onClick={loginAdmin}>
-            Entrar
-            <Icon name="arrow" size={18} />
+            Entrar <Icon name="arrow" size={18} />
           </button>
         </div>
       </Panel>
     );
   }
 
-  const kpis = [
-    ["users", "Visitantes", stats?.total_visitors || 0, "Sessões com consentimento.", V.gold],
-    ["diagnosis", "Fase 1 completa", stats?.completed_diag || 0, "Diagnósticos concluídos.", V.green],
-    ["conversion", "Fase 1 -> Fase 2", pct(stats?.phase1_to_phase2_rate || 0), "Taxa de avanço para a segunda fase.", V.gold2],
-    ["whatsapp", "WhatsApp", channelSummary.whatsapp?.count || 0, "Cliques registrados no canal.", V.green2],
-    ["clock", "Tempo médio", formatDuration(stats?.avg_duration_sec || 0), "Duração média de sessão.", V.blue],
-    ["analytics", "Cliques sociais", stats?.total_channel_clicks || 0, "WhatsApp, Instagram e LinkedIn.", V.red],
-  ];
+  // ── DETALHE DE UM DIAGNÓSTICO ─────────────────────────────────
+  if (selected) {
+    const d = selected;
+    const fin = d.fin_data || {};
+    const answers = d.answers || {};
+    const QUESTIONS = {
+      DA1:"Padrão de energia",
+      DA2:"Resposta ao lead",
+      DA3:"Gestão de objeção",
+      DA4:"Resultado comercial",
+      DA5:"Início do dia",
+    };
+    const ANSWER_LABELS = {
+      1:"Operacional / Organização",
+      2:"Passivo / Empatia",
+      3:"Consultivo / Técnico",
+      4:"Elite / Comercial",
+    };
+    return (
+      <div>
+        <button className="btn btn-ghost" style={{ marginBottom:20 }}
+          onClick={() => setSelected(null)}>
+          ← Voltar à lista
+        </button>
+        <Panel>
+          <div className="eyebrow">Diagnóstico completo</div>
+          <h2 className="section-title" style={{ marginBottom:4 }}>{d.clinic}</h2>
+          <div style={{ color:"#978b7c", marginBottom:20 }}>{d.created_at}</div>
 
-  const funnel = [
-    { label: "Visitantes com consentimento", value: stats?.total_visitors || 0 },
-    { label: "Concluíram Fase 1", value: stats?.completed_diag || 0 },
-    { label: "Abriram Fase 2", value: stats?.fase2_views || 0 },
-    { label: "Clicaram em canal", value: stats?.total_channel_clicks || 0 },
-  ];
+          {/* Dados de contato */}
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:20 }}>
+            {[
+              ["Responsável",     d.owner],
+              ["Secretária",      d.secretary || "—"],
+              ["WhatsApp",        d.whatsapp],
+              ["Instagram",       d.instagram || "—"],
+              ["Perfil DISC",     `${d.profile} · ${d.disc}`],
+              ["Veredito",        d.verdict || "—"],
+            ].map(([label, value]) => (
+              <div key={label} style={{ background:"rgba(255,255,255,.04)",
+                borderRadius:10, padding:"12px 14px", border:"1px solid rgba(255,255,255,.08)" }}>
+                <div style={{ fontSize:10, textTransform:"uppercase", letterSpacing:1,
+                  color:"#978b7c", marginBottom:4 }}>{label}</div>
+                <div style={{ fontWeight:600 }}>{value}</div>
+              </div>
+            ))}
+          </div>
 
+          {/* Dados financeiros */}
+          <div className="eyebrow" style={{ marginBottom:10 }}>Dados financeiros</div>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10, marginBottom:20 }}>
+            {[
+              ["Taxa de conversão",   `${d.tc || 0}%`],
+              ["Leads por semana",    fin.total || "—"],
+              ["Agendamentos/sem",    fin.appointments || "—"],
+              ["Ticket médio",        money(fin.ticket)],
+              ["Vazamento mensal",    money(d.monthly_loss)],
+              ["Potencial mensal",    money(fin.monthlyPotential || fin.mPot)],
+            ].map(([l, v]) => (
+              <div key={l} style={{ background:"rgba(255,255,255,.04)",
+                borderRadius:10, padding:"12px 14px", border:"1px solid rgba(255,255,255,.08)", textAlign:"center" }}>
+                <div style={{ fontSize:10, textTransform:"uppercase", letterSpacing:1,
+                  color:"#978b7c", marginBottom:4 }}>{l}</div>
+                <div style={{ fontWeight:700, fontSize:18, color:"#d7b56d" }}>{v}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Respostas do questionário */}
+          <div className="eyebrow" style={{ marginBottom:10 }}>Respostas do questionário</div>
+          <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+            {Object.entries(QUESTIONS).map(([key, label]) => (
+              <div key={key} style={{ display:"flex", justifyContent:"space-between",
+                padding:"10px 14px", background:"rgba(255,255,255,.04)",
+                borderRadius:8, border:"1px solid rgba(255,255,255,.06)" }}>
+                <span style={{ color:"#c9c0b3", fontSize:13 }}>{label}</span>
+                <span style={{ fontWeight:600, color:"#d7b56d", fontSize:13 }}>
+                  {ANSWER_LABELS[answers[key]] || `Opção ${answers[key]}` || "—"}
+                </span>
+              </div>
+            ))}
+          </div>
+        </Panel>
+      </div>
+    );
+  }
+
+  // ── LISTA DE DIAGNÓSTICOS ─────────────────────────────────────
   return (
-    <>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "center", marginBottom: 20, flexWrap: "wrap" }}>
+    <div>
+      <div style={{ display:"flex", justifyContent:"space-between",
+        alignItems:"center", marginBottom:24, flexWrap:"wrap", gap:12 }}>
         <div>
-          <div className="eyebrow">Painel administrador</div>
-          <h1 className="section-title">Analytics avançado da Fase 2</h1>
-          <p className="section-copy">Leitura limpa de origem, comportamento, tempo antes do clique e conversão.</p>
+          <div className="eyebrow">Painel Administrador</div>
+          <h2 className="section-title" style={{ margin:0 }}>
+            {diagnostics.length} diagnóstico{diagnostics.length !== 1 ? "s" : ""} registrado{diagnostics.length !== 1 ? "s" : ""}
+          </h2>
         </div>
-        <div className="actions" style={{ marginTop: 0 }}>
-          <button className="btn btn-ghost" onClick={refresh} disabled={loadingStats}>
-            <Icon name="refresh" size={18} />
+        <div style={{ display:"flex", gap:10 }}>
+          <button className="btn btn-ghost" onClick={refresh}
+            style={{ fontSize:13 }}>
             Atualizar
           </button>
-          <button
-            className="btn btn-ghost"
-            onClick={async () => {
-              const response = await fetch("/api/admin", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ action: "export", password: adminPw }),
-              });
-              const blob = await response.blob();
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement("a");
-              a.href = url;
-              a.download = "vert4_analytics.xlsx";
-              a.click();
-              URL.revokeObjectURL(url);
-            }}
-          >
-            <Icon name="export" size={18} />
-            Exportar
+          <button className="btn btn-ghost" onClick={logout}
+            style={{ fontSize:13 }}>
+            Sair
           </button>
-          <button className="btn btn-ghost" onClick={logout}>Sair</button>
         </div>
       </div>
 
-      {adminError && <div className="glass panel-pad" style={{ color: "#ff9aa4", marginBottom: 16 }}>{adminError}</div>}
-
-      <div className="grid-3">
-        {kpis.map(([icon, label, value, sub, color]) => (
-          <MetricCard key={label} icon={icon} label={label} value={value} sub={sub} color={color} />
+      {/* Cards de resumo */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12, marginBottom:24 }}>
+        {[
+          ["Diagnósticos",     diagnostics.length,                                                 "#d7b56d"],
+          ["Vazamento total",  diagnostics.reduce((a,d)=>a+Number(d.monthly_loss||d.mLoss||0),0), "#e57373", true],
+          ["TC média",         diagnostics.length ? (diagnostics.reduce((a,d)=>a+Number(d.tc||d.conversion_rate||0),0)/diagnostics.length).toFixed(1)+"%" : "—", "#44a276"],
+        ].map(([l,v,c,isMoney]) => (
+          <div key={l} style={{ background:"rgba(255,255,255,.04)",
+            borderRadius:12, padding:"18px", border:`1px solid ${c}30` }}>
+            <div style={{ fontSize:10, textTransform:"uppercase", letterSpacing:1,
+              color:"#978b7c", marginBottom:6 }}>{l}</div>
+            <div style={{ fontWeight:700, fontSize:22, color:c }}>
+              {isMoney ? Number(v).toLocaleString("pt-BR",{style:"currency",currency:"BRL"}) : v}
+            </div>
+          </div>
         ))}
       </div>
 
-      <div className="grid-2" style={{ marginTop: 16 }}>
+      {/* Lista clicável */}
+      {diagnostics.length === 0 ? (
         <Panel>
-          <div className="eyebrow">Funil de conversão</div>
-          <h2 className="section-title">Fase 1 para Fase 2</h2>
-          <Funnel steps={funnel} />
+          <p style={{ textAlign:"center", color:"#978b7c", padding:"40px 0" }}>
+            Nenhum diagnóstico registrado ainda.
+          </p>
         </Panel>
-        <Panel>
-          <div className="eyebrow">Origem do usuario</div>
-          <h2 className="section-title">Fontes mais frequentes</h2>
-          {originData.length ? <BarRows data={originData} /> : <p className="section-copy">Sem origem registrada ainda.</p>}
-        </Panel>
-      </div>
-
-      <div className="grid-3" style={{ marginTop: 16 }}>
-        {CHANNELS.map((channel) => {
-          const data = channelSummary[channel.id] || {};
-          return (
-            <Panel key={channel.id}>
-              <div className="metric-icon">
-                <Icon name={channel.id} />
+      ) : (
+        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+          {diagnostics.map((d, i) => (
+            <button key={i}
+              onClick={() => setSelected(d)}
+              style={{ background:"rgba(255,255,255,.04)", border:"1px solid rgba(255,255,255,.08)",
+                borderRadius:12, padding:"18px 20px", cursor:"pointer", textAlign:"left",
+                transition:"all .2s", width:"100%" }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor="rgba(215,181,109,.4)"; e.currentTarget.style.background="rgba(215,181,109,.06)"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor="rgba(255,255,255,.08)"; e.currentTarget.style.background="rgba(255,255,255,.04)"; }}
+            >
+              <div style={{ display:"flex", justifyContent:"space-between",
+                alignItems:"flex-start", flexWrap:"wrap", gap:10 }}>
+                <div>
+                  <div style={{ fontWeight:700, fontSize:16, marginBottom:4 }}>
+                    {d.clinic || "—"}
+                  </div>
+                  <div style={{ fontSize:13, color:"#978b7c" }}>
+                    {d.owner || d.owner_name || "—"} · {d.secretary || "sem nome"}
+                  </div>
+                </div>
+                <div style={{ display:"flex", gap:16, alignItems:"center", flexWrap:"wrap" }}>
+                  <div style={{ textAlign:"center" }}>
+                    <div style={{ fontSize:10, color:"#978b7c", textTransform:"uppercase", letterSpacing:1 }}>Perfil</div>
+                    <div style={{ fontWeight:700, color:"#d7b56d" }}>{d.profile || "—"}</div>
+                  </div>
+                  <div style={{ textAlign:"center" }}>
+                    <div style={{ fontSize:10, color:"#978b7c", textTransform:"uppercase", letterSpacing:1 }}>Conversão</div>
+                    <div style={{ fontWeight:700, color: Number(d.tc||d.conversion_rate||0)>=50?"#44a276":Number(d.tc||d.conversion_rate||0)>=30?"#d7b56d":"#e57373" }}>
+                      {d.tc || d.conversion_rate || 0}%
+                    </div>
+                  </div>
+                  <div style={{ textAlign:"center" }}>
+                    <div style={{ fontSize:10, color:"#978b7c", textTransform:"uppercase", letterSpacing:1 }}>Vazamento</div>
+                    <div style={{ fontWeight:700, color:"#e57373" }}>
+                      {Number(d.monthly_loss||d.mLoss||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}
+                    </div>
+                  </div>
+                  <div style={{ textAlign:"right" }}>
+                    <div style={{ fontSize:11, color:"#978b7c" }}>{d.created_at || d.ts?.slice?.(0,10) || ""}</div>
+                    {d.whatsapp && <div style={{ fontSize:13, color:"#44a276" }}>{d.whatsapp}</div>}
+                  </div>
+                </div>
               </div>
-              <div className="eyebrow">{channel.label}</div>
-              <div className="metric-value">{data.count || 0}</div>
-              <p className="section-copy">Tempo médio antes do clique: {formatDuration(data.avg_seconds_before_click || 0)}.</p>
-            </Panel>
-          );
-        })}
-      </div>
-
-      <Panel style={{ marginTop: 16 }}>
-        <div className="eyebrow">Quem clicou nos canais</div>
-        <h2 className="section-title">Cliques com tempo, origem e interações</h2>
-        <div className="table-wrap">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Quem</th>
-                <th>Canal</th>
-                <th>Tempo até clique</th>
-                <th>Sessão total</th>
-                <th>Horário</th>
-                <th>Origem</th>
-                <th>Interações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {clicks.length ? (
-                clicks.map((click, index) => (
-                  <tr key={`${click.session_id}-${index}`}>
-                    <td>
-                      <strong>{click.clinic || click.owner || "Visitante anonimo"}</strong>
-                      <div style={{ color: V.soft, fontSize: 12 }}>{click.owner || click.secretary || click.session_id}</div>
-                    </td>
-                    <td style={{ color: V.gold, fontWeight: 900 }}>{click.channel}</td>
-                    <td>{formatDuration(click.seconds_before_click)}</td>
-                    <td>{formatDuration(click.total_session_sec)}</td>
-                    <td>{click.clicked_at}</td>
-                    <td>{click.origin || "direto"}</td>
-                    <td>{click.interactions_before_click ?? 0}</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="7" style={{ color: V.soft, textAlign: "center", padding: 28 }}>Nenhum clique de canal registrado ainda.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+              <div style={{ marginTop:8, fontSize:12, color:"#978b7c" }}>
+                Clique para ver detalhes completos →
+              </div>
+            </button>
+          ))}
         </div>
-      </Panel>
-
-      <Panel style={{ marginTop: 16 }}>
-        <div className="eyebrow">Diagnósticos</div>
-        <h2 className="section-title">{diagnostics.length} diagnóstico{diagnostics.length === 1 ? "" : "s"} registrado{diagnostics.length === 1 ? "" : "s"}</h2>
-        <div className="table-wrap">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Clínica</th>
-                <th>Perfil</th>
-                <th>Conversão</th>
-                <th>Potencial</th>
-                <th>Vazamento</th>
-                <th>Contato</th>
-              </tr>
-            </thead>
-            <tbody>
-              {diagnostics.length ? (
-                diagnostics.map((lead, index) => (
-                  <tr key={`${lead.clinic}-${index}`}>
-                    <td>
-                      <strong>{lead.clinic || "Sem clínica"}</strong>
-                      <div style={{ color: V.soft, fontSize: 12 }}>{lead.owner || ""}</div>
-                    </td>
-                    <td style={{ color: PROFILE[lead.profile]?.color || V.gold, fontWeight: 900 }}>{lead.profile || "-"} {lead.profile_name || ""}</td>
-                    <td>{pct(lead.conversion_rate ?? lead.tc ?? 0)}</td>
-                    <td>{lead.potential_score ? `${lead.potential_score}/100` : "-"}</td>
-                    <td>{money(lead.monthly_loss ?? lead.mLoss ?? 0)}</td>
-                    <td>{lead.whatsapp || "-"}</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="6" style={{ color: V.soft, textAlign: "center", padding: 28 }}>Nenhum diagnóstico concluido ainda.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </Panel>
-    </>
+      )}
+    </div>
   );
 }
