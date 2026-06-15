@@ -214,9 +214,20 @@ async function saveDiagnostic(payload) {
       whatsapp:     payload.form?.whatsapp     || "",
       instagram:    payload.form?.instagram    || "",
       profile:      payload.profile            || "",
-      disc:         payload.profileData?.disc  || "",
+      disc:         payload.profileData?.disc || PROFILE[payload.profile]?.disc || "",
       answers:      payload.answers            || {},
-      fin_data:     payload.fin               || {},
+      fin_data: {
+        total:        payload.fin?.total        || 0,
+        org:          payload.fin?.org          || 0,
+        paid:         payload.fin?.paid         || 0,
+        appointments: payload.fin?.appointments || 0,
+        ticket:       payload.fin?.ticket       || 0,
+        conversion:   payload.fin?.conversion   || 0,
+        monthlyLoss:  payload.fin?.monthlyLoss  || 0,
+        monthlyPotential: payload.fin?.monthlyPotential || 0,
+        lost:         payload.fin?.lost         || 0,
+        roiAlert:     payload.fin?.roiAlert     || false,
+      },
       verdict:      payload.vd                || "",
       tc:           payload.fin?.conversion   || 0,
       monthly_loss: payload.fin?.monthlyLoss  || 0,
@@ -1561,8 +1572,8 @@ function Report({ result, narrative, tab, setTab, trackTab, openTracked, reset }
           </Panel>
 
           <Panel>
-            <div className="eyebrow">Camada IA</div>
-            <h2 className="section-title">Comentário adaptativo.</h2>
+            <div className="eyebrow">Análise do perfil</div>
+            <h2 className="section-title">O que este padrão revela.</h2>
             {aiBlocks.length ? (
               <div className="list">
                 {aiBlocks.map((block) => (
@@ -1570,9 +1581,11 @@ function Report({ result, narrative, tab, setTab, trackTab, openTracked, reset }
                 ))}
               </div>
             ) : (
-              <p className="section-copy">
-                A leitura local já foi gerada com base nas respostas. Para comentarios adicionais por IA, configure a chave do provedor no backend.
-              </p>
+              <div className="list">
+                {(intelligence?.insights || []).map((item, i) => (
+                  <p className="section-copy glass panel-pad" key={i}>{item}</p>
+                ))}
+              </div>
             )}
           </Panel>
         </div>
@@ -1735,11 +1748,38 @@ function AdminPanel({ adminOk, adminPw, setAdminPw, adminError, loginAdmin, load
       DA4:"Resultado comercial",
       DA5:"Início do dia",
     };
-    const ANSWER_LABELS = {
-      1:"Operacional / Organização",
-      2:"Passivo / Empatia",
-      3:"Consultivo / Técnico",
-      4:"Elite / Comercial",
+    // Textos das respostas por pergunta e opção
+    const ANSWER_TEXTS = {
+      DA1: {
+        1: "Agenda atualizada, processos com exatidão, nada pode falhar",
+        2: "Cria ambiente caloroso, lembrada pelo acolhimento genuíno",
+        3: "Explica protocolos com segurança e domínio clínico",
+        4: "De olho em leads, inquieta quando escapa uma oportunidade",
+      },
+      DA2: {
+        1: "Envia informações e preço objetivamente, aguarda retorno",
+        2: "Responde com cuidado, conversa muito, raramente converte",
+        3: "Explica tratamento antes do preço, conduz para avaliação",
+        4: "Qualifica o lead, evita dar preço direto, insiste no agendamento",
+      },
+      DA3: {
+        1: "Encerra educadamente, não retoma a conversa",
+        2: "Fica desconfortável, pode concordar para evitar conflito",
+        3: "Argumenta tecnicamente sobre qualidade e diferencial",
+        4: "Faz perguntas para reposicionar o valor, esgota possibilidades",
+      },
+      DA4: {
+        1: "Mantém operação funcionando, não gera agendamentos proativamente",
+        2: "Adorada pelas pacientes, conversão de novos leads é fraca",
+        3: "Converte quando há interesse claro, raramente vende de verdade",
+        4: "Máquina de agendamentos — quando lead entra, probabilidade de fechar é alta",
+      },
+      DA5: {
+        1: "Organizar agenda, checar fichas e garantir tudo atualizado",
+        2: "Responder mensagens, dar bom dia e cuidar das pacientes",
+        3: "Estudar protocolos e estar pronta para tirar dúvidas técnicas",
+        4: "Olhar lista de leads novos e acionar cada um para converter",
+      },
     };
     return (
       <div>
