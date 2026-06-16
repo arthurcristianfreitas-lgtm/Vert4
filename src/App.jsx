@@ -1739,111 +1739,145 @@ function AdminPanel({ adminOk, adminPw, setAdminPw, adminError, loginAdmin, load
   // ── DETALHE DE UM DIAGNÓSTICO ─────────────────────────────────
   if (selected) {
     const d = selected;
-    const fin = d.fin_data || {};
-    const answers = d.answers || {};
-    const QUESTIONS = {
+
+    // Normaliza campos — aceita formato Supabase E localStorage
+    const ownerName  = d.owner_name || d.owner || "—";
+    const secretary  = d.secretary  || "—";
+    const whatsapp   = d.whatsapp   || "—";
+    const instagram  = d.instagram  || "—";
+    const profileKey = d.profile    || "—";
+    const discKey    = d.disc       || PROFILE[d.profile]?.disc || "—";
+    const verdict    = d.verdict    || d.vd || "—";
+    const createdAt  = d.created_at || d.ts || "—";
+
+    // Dados financeiros — aceita fin_data (Supabase) ou campos diretos (localStorage)
+    const fin = typeof d.fin_data === "object" && d.fin_data
+      ? d.fin_data
+      : {
+          total:        d.total        || 0,
+          appointments: d.appointments || 0,
+          ticket:       d.ticket       || 0,
+          conversion:   d.tc || d.conversion_rate || 0,
+          monthlyLoss:  d.monthly_loss || d.mLoss  || 0,
+          monthlyPotential: d.monthlyPotential || 0,
+        };
+    const tc         = d.tc || d.conversion_rate || fin.conversion || 0;
+    const monthlyLoss = d.monthly_loss || d.mLoss || fin.monthlyLoss || 0;
+
+    // Respostas — aceita objeto com DA1/DA2 ou índice numérico
+    let answers = {};
+    try {
+      const raw = typeof d.answers === "string" ? JSON.parse(d.answers) : (d.answers || {});
+      // Normaliza: { DA1: 4 } ou { "0": 4, "1": 3... } → { DA1: 4... }
+      const keys = Object.keys(raw);
+      if (keys.length && !keys[0].startsWith("DA")) {
+        const qIds = ["DA1","DA2","DA3","DA4","DA5"];
+        keys.forEach((k, i) => { if (qIds[i]) answers[qIds[i]] = raw[k]; });
+      } else {
+        answers = raw;
+      }
+    } catch {}
+
+    const Q_LABELS = {
       DA1:"Padrão de energia",
       DA2:"Resposta ao lead",
       DA3:"Gestão de objeção",
       DA4:"Resultado comercial",
       DA5:"Início do dia",
     };
-    // Textos das respostas por pergunta e opção
-    const ANSWER_TEXTS = {
-      DA1: {
-        1: "Agenda atualizada, processos com exatidão, nada pode falhar",
-        2: "Cria ambiente caloroso, lembrada pelo acolhimento genuíno",
-        3: "Explica protocolos com segurança e domínio clínico",
-        4: "De olho em leads, inquieta quando escapa uma oportunidade",
-      },
-      DA2: {
-        1: "Envia informações e preço objetivamente, aguarda retorno",
-        2: "Responde com cuidado, conversa muito, raramente converte",
-        3: "Explica tratamento antes do preço, conduz para avaliação",
-        4: "Qualifica o lead, evita dar preço direto, insiste no agendamento",
-      },
-      DA3: {
-        1: "Encerra educadamente, não retoma a conversa",
-        2: "Fica desconfortável, pode concordar para evitar conflito",
-        3: "Argumenta tecnicamente sobre qualidade e diferencial",
-        4: "Faz perguntas para reposicionar o valor, esgota possibilidades",
-      },
-      DA4: {
-        1: "Mantém operação funcionando, não gera agendamentos proativamente",
-        2: "Adorada pelas pacientes, conversão de novos leads é fraca",
-        3: "Converte quando há interesse claro, raramente vende de verdade",
-        4: "Máquina de agendamentos — quando lead entra, probabilidade de fechar é alta",
-      },
-      DA5: {
-        1: "Organizar agenda, checar fichas e garantir tudo atualizado",
-        2: "Responder mensagens, dar bom dia e cuidar das pacientes",
-        3: "Estudar protocolos e estar pronta para tirar dúvidas técnicas",
-        4: "Olhar lista de leads novos e acionar cada um para converter",
-      },
+
+    const Q_OPTIONS = {
+      DA1:{ 1:"Agenda atualizada, processos com exatidão, nada pode falhar",
+            2:"Cria ambiente caloroso, lembrada pelo acolhimento genuíno",
+            3:"Explica protocolos com segurança e domínio clínico",
+            4:"De olho em leads, inquieta quando escapa uma oportunidade" },
+      DA2:{ 1:"Envia informações e preço objetivamente, aguarda retorno",
+            2:"Responde com cuidado, conversa muito, raramente converte",
+            3:"Explica tratamento antes do preço, conduz para avaliação",
+            4:"Qualifica o lead, evita dar preço direto, insiste no agendamento" },
+      DA3:{ 1:"Encerra educadamente, não retoma a conversa",
+            2:"Fica desconfortável, pode concordar para evitar conflito",
+            3:"Argumenta tecnicamente sobre qualidade e diferencial clínico",
+            4:"Faz perguntas para reposicionar o valor, esgota possibilidades" },
+      DA4:{ 1:"Mantém operação funcionando, não gera agendamentos proativamente",
+            2:"Adorada pelas pacientes, conversão de novos leads é fraca",
+            3:"Converte quando há interesse claro, raramente vende de verdade",
+            4:"Máquina de agendamentos — quando lead entra, probabilidade de fechar é alta" },
+      DA5:{ 1:"Organizar agenda, checar fichas e garantir tudo atualizado",
+            2:"Responder mensagens, dar bom dia e cuidar das pacientes",
+            3:"Estudar protocolos e estar pronta para tirar dúvidas técnicas",
+            4:"Olhar lista de leads novos e acionar cada um para converter" },
     };
+
+    const card = (label, value, highlight) => (
+      <div key={label} style={{ background:"rgba(255,255,255,.04)", borderRadius:10,
+        padding:"12px 14px", border:"1px solid rgba(255,255,255,.08)" }}>
+        <div style={{ fontSize:10, textTransform:"uppercase", letterSpacing:1,
+          color:"#978b7c", marginBottom:4 }}>{label}</div>
+        <div style={{ fontWeight:600, color: highlight || "#f7f2e9" }}>{value || "—"}</div>
+      </div>
+    );
+
     return (
       <div>
         <button className="btn btn-ghost" style={{ marginBottom:20 }}
-          onClick={() => setSelected(null)}>
-          ← Voltar à lista
-        </button>
+          onClick={() => setSelected(null)}>← Voltar à lista</button>
+
         <Panel>
           <div className="eyebrow">Diagnóstico completo</div>
-          <h2 className="section-title" style={{ marginBottom:4 }}>{d.clinic}</h2>
-          <div style={{ color:"#978b7c", marginBottom:20 }}>{d.created_at}</div>
+          <h2 className="section-title" style={{ marginBottom:4 }}>{d.clinic || "—"}</h2>
+          <div style={{ color:"#978b7c", marginBottom:20, fontSize:13 }}>{createdAt}</div>
 
-          {/* Dados de contato */}
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:20 }}>
-            {[
-              ["Responsável",     d.owner],
-              ["Secretária",      d.secretary || "—"],
-              ["WhatsApp",        d.whatsapp],
-              ["Instagram",       d.instagram || "—"],
-              ["Perfil DISC",     `${d.profile} · ${d.disc}`],
-              ["Veredito",        d.verdict || "—"],
-            ].map(([label, value]) => (
-              <div key={label} style={{ background:"rgba(255,255,255,.04)",
-                borderRadius:10, padding:"12px 14px", border:"1px solid rgba(255,255,255,.08)" }}>
-                <div style={{ fontSize:10, textTransform:"uppercase", letterSpacing:1,
-                  color:"#978b7c", marginBottom:4 }}>{label}</div>
-                <div style={{ fontWeight:600 }}>{value}</div>
-              </div>
-            ))}
+          {/* Identificação */}
+          <div className="eyebrow" style={{ marginBottom:10 }}>Identificação</div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:20 }}>
+            {card("Responsável",    ownerName)}
+            {card("Secretária",     secretary)}
+            {card("WhatsApp",       whatsapp,  "#44a276")}
+            {card("Instagram",      instagram)}
+            {card("Perfil DISC",    `${profileKey} · ${discKey}`, "#d7b56d")}
+            {card("Veredito",       verdict)}
           </div>
 
-          {/* Dados financeiros */}
+          {/* Financeiro */}
           <div className="eyebrow" style={{ marginBottom:10 }}>Dados financeiros</div>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10, marginBottom:20 }}>
             {[
-              ["Taxa de conversão",   `${d.tc || 0}%`],
-              ["Leads por semana",    fin.total || "—"],
-              ["Agendamentos/sem",    fin.appointments || "—"],
-              ["Ticket médio",        money(fin.ticket)],
-              ["Vazamento mensal",    money(d.monthly_loss)],
-              ["Potencial mensal",    money(fin.monthlyPotential || fin.mPot)],
-            ].map(([l, v]) => (
-              <div key={l} style={{ background:"rgba(255,255,255,.04)",
-                borderRadius:10, padding:"12px 14px", border:"1px solid rgba(255,255,255,.08)", textAlign:"center" }}>
+              ["Taxa de conversão",  `${Number(tc).toFixed(1)}%`],
+              ["Leads por semana",   fin.total        || "—"],
+              ["Agendamentos/sem",   fin.appointments || "—"],
+              ["Ticket médio",       fin.ticket       ? money(fin.ticket) : "—"],
+              ["Vazamento mensal",   money(monthlyLoss)],
+              ["Potencial mensal",   fin.monthlyPotential ? money(fin.monthlyPotential) : "—"],
+            ].map(([l,v]) => (
+              <div key={l} style={{ background:"rgba(255,255,255,.04)", borderRadius:10,
+                padding:"12px 14px", border:"1px solid rgba(255,255,255,.08)", textAlign:"center" }}>
                 <div style={{ fontSize:10, textTransform:"uppercase", letterSpacing:1,
                   color:"#978b7c", marginBottom:4 }}>{l}</div>
-                <div style={{ fontWeight:700, fontSize:18, color:"#d7b56d" }}>{v}</div>
+                <div style={{ fontWeight:700, fontSize:17, color:"#d7b56d" }}>{v}</div>
               </div>
             ))}
           </div>
 
-          {/* Respostas do questionário */}
+          {/* Respostas */}
           <div className="eyebrow" style={{ marginBottom:10 }}>Respostas do questionário</div>
           <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-            {Object.entries(QUESTIONS).map(([key, label]) => (
-              <div key={key} style={{ display:"flex", justifyContent:"space-between",
-                padding:"10px 14px", background:"rgba(255,255,255,.04)",
-                borderRadius:8, border:"1px solid rgba(255,255,255,.06)" }}>
-                <span style={{ color:"#c9c0b3", fontSize:13 }}>{label}</span>
-                <span style={{ fontWeight:600, color:"#d7b56d", fontSize:13 }}>
-                  {ANSWER_LABELS[answers[key]] || `Opção ${answers[key]}` || "—"}
-                </span>
-              </div>
-            ))}
+            {Object.entries(Q_LABELS).map(([key, label]) => {
+              const answerNum = Number(answers[key]);
+              const text = Q_OPTIONS[key]?.[answerNum];
+              return (
+                <div key={key} style={{ padding:"12px 16px",
+                  background:"rgba(255,255,255,.04)", borderRadius:10,
+                  border:"1px solid rgba(255,255,255,.07)" }}>
+                  <div style={{ fontSize:11, color:"#978b7c", textTransform:"uppercase",
+                    letterSpacing:.8, marginBottom:5 }}>{label}</div>
+                  <div style={{ fontSize:14, color: text ? "#f7f2e9" : "#978b7c",
+                    fontWeight: text ? 400 : 300 }}>
+                    {text || "Resposta não registrada"}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </Panel>
       </div>
