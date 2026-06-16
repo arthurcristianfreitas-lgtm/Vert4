@@ -1173,60 +1173,11 @@ export default function App() {
               potencial comercial e sinais de prontidão para a Fase 2 da VERT4.
             </p>
             <div className="actions">
-              {(() => {
-                try {
-                  const prev = localStorage.getItem("vert4_last_result");
-                  if (prev) {
-                    const parsed = JSON.parse(prev);
-                    return (
-                      <div style={{ display:"flex", flexDirection:"column", gap:12, alignItems:"flex-start" }}>
-                        <div style={{ background:"rgba(215,181,109,.1)", border:"1px solid rgba(215,181,109,.35)",
-                          borderRadius:12, padding:"14px 18px", width:"100%" }}>
-                          <div style={{ fontSize:11, color:"#d7b56d", marginBottom:4, textTransform:"uppercase", letterSpacing:1 }}>
-                            Diagnóstico anterior encontrado
-                          </div>
-                          <div style={{ fontWeight:700, marginBottom:2 }}>
-                            {parsed?.form?.clinic || "Clínica"} — {parsed?.form?.owner || ""}
-                          </div>
-                          <div style={{ fontSize:13, opacity:.7 }}>
-                            {parsed?.form?.secretary || "secretária"} · Perfil {parsed?.profile}
-                          </div>
-                        </div>
-                        <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
-                          <button className="btn btn-primary" onClick={() => {
-                            try {
-                              const prev = localStorage.getItem("vert4_last_result");
-                              const narrative = localStorage.getItem("vert4_last_narrative");
-                              if (prev) {
-                                setResult(JSON.parse(prev));
-                                if (narrative) setNarrative(JSON.parse(narrative));
-                                go("report");
-                              }
-                            } catch { go("form_id"); }
-                          }}>
-                            Ver meu resultado
-                            <Icon name="arrow" size={18} />
-                          </button>
-                          <button className="btn btn-ghost" onClick={() => {
-                            localStorage.removeItem("vert4_last_result");
-                            localStorage.removeItem("vert4_last_narrative");
-                            go("form_id");
-                          }}>
-                            Novo diagnóstico
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  }
-                } catch {}
-                return (
-                  <button className="btn btn-primary" onClick={() => go("form_id")}>
-                    Iniciar diagnóstico
-                    <Icon name="arrow" size={18} />
-                  </button>
-                );
-              })()}
-              <span className="micro">Leva cerca de 4 minutos. Resultado imediato e leitura premium.</span>
+              <button className="btn btn-primary" onClick={() => go("form_id")}>
+                Iniciar diagnóstico
+                <Icon name="arrow" size={18} />
+              </button>
+              <span className="micro">Leva cerca de 4 minutos. Resultado imediato.</span>
             </div>
           </div>
 
