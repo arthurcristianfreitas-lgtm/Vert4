@@ -1623,6 +1623,55 @@ function Report({ result, narrative, tab, setTab, trackTab, openTracked, reset }
         </div>
       )}
 
+      {/* SEÇÃO APENAS PARA PDF — oculta na tela, visível ao imprimir */}
+      <div className="print-all-tabs" style={{ display:"none" }}>
+        <div style={{ pageBreakBefore:"auto", marginBottom:24 }}>
+          <h2 style={{ fontSize:22, marginBottom:8 }}>Diagnóstico Comportamental</h2>
+          <p style={{ marginBottom:8 }}><strong>Clínica:</strong> {result?.form?.clinic} | <strong>Responsável:</strong> {result?.form?.owner}</p>
+          <p style={{ marginBottom:8 }}><strong>Secretária:</strong> {result?.form?.secretary || "—"} | <strong>WhatsApp:</strong> {result?.form?.whatsapp}</p>
+          <p style={{ marginBottom:8 }}><strong>Perfil:</strong> {profileData.name} ({profileData.disc}) | <strong>Veredito:</strong> {verdict}</p>
+          <p style={{ marginBottom:16 }}>{profileData.promise}</p>
+          <h3>Pontos fortes</h3>
+          {(intelligence.strengths || []).map((s,i) => <p key={i} style={{ margin:"4px 0" }}>• {s}</p>)}
+          <h3 style={{ marginTop:12 }}>Pontos de atenção</h3>
+          {(intelligence.weaknesses || []).map((w,i) => <p key={i} style={{ margin:"4px 0" }}>• {w}</p>)}
+        </div>
+
+        <div style={{ pageBreakBefore:"always", marginBottom:24 }}>
+          <h2 style={{ fontSize:22, marginBottom:8 }}>Dados Financeiros</h2>
+          <p><strong>Leads por semana:</strong> {fin.total} | <strong>Agendamentos:</strong> {fin.appointments}</p>
+          <p><strong>Ticket médio:</strong> {money(fin.ticket)} | <strong>Taxa de conversão:</strong> {pct(fin.conversion)}</p>
+          <p><strong>Receita mensal atual:</strong> {money(fin.monthlyRevenue)}</p>
+          <p><strong>Vazamento mensal estimado:</strong> {money(fin.monthlyLoss)}</p>
+          <p><strong>Potencial aproveitado:</strong> {pct(fin.potentialUsed)}</p>
+          {fin.roiAlert && <p style={{ color:"#c0392b", marginTop:8 }}>⚠ Alerta de ROI: antes de aumentar tráfego pago, a etapa de atendimento precisa ser protegida.</p>}
+        </div>
+
+        <div style={{ pageBreakBefore:"always", marginBottom:24 }}>
+          <h2 style={{ fontSize:22, marginBottom:8 }}>Análise</h2>
+          <p style={{ marginBottom:8 }}>{intelligence.executive}</p>
+          <p style={{ marginBottom:8 }}>{intelligence.cost}</p>
+          <h3>Insights</h3>
+          {(intelligence.insights || []).map((s,i) => <p key={i} style={{ margin:"4px 0" }}>• {s}</p>)}
+          <h3 style={{ marginTop:12 }}>Para o dono desta semana</h3>
+          <p>{intelligence.owner}</p>
+          <h3 style={{ marginTop:12 }}>Script para WhatsApp</h3>
+          <p>{intelligence.script}</p>
+        </div>
+
+        <div style={{ pageBreakBefore:"always", marginBottom:24 }}>
+          <h2 style={{ fontSize:22, marginBottom:8 }}>Plano de 30 Dias</h2>
+          {(intelligence.nextSteps || []).map((s,i) => <p key={i} style={{ margin:"4px 0" }}>• {s}</p>)}
+          <h3 style={{ marginTop:16 }}>Cadência sugerida</h3>
+          {[
+            ["Semana 1","Auditar conversas e classificar perdas."],
+            ["Semana 2","Implantar roteiro de qualificação e convite."],
+            ["Semana 3","Treinar contorno de objeções reais e medir follow-up."],
+            ["Semana 4","Comparar taxa, ajustar playbook e decidir Fase 2."],
+          ].map(([w,t]) => <p key={w} style={{ margin:"6px 0" }}><strong>{w}:</strong> {t}</p>)}
+        </div>
+      </div>
+
       <div className="actions" style={{ justifyContent: "space-between", flexWrap:"wrap", gap:10 }}>
         <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
           {/* Novo diagnóstico */}
@@ -1634,10 +1683,26 @@ function Report({ result, narrative, tab, setTab, trackTab, openTracked, reset }
             className="btn btn-ghost"
             style={{ borderColor:"rgba(215,181,109,.5)", color:"#d7b56d" }}
             onClick={() => {
+              // Mostra todas as abas temporariamente para imprimir tudo de uma vez
+              const panels = document.querySelectorAll(".print-all-tabs");
+              panels.forEach(el => el.style.display = "block");
+              const hideTabs = document.querySelector(".tabs");
+              const hideActions = document.querySelector(".report-actions");
+              if (hideTabs) hideTabs.style.display = "none";
               const orig = document.title;
-              document.title = `Laudo VERT4 - ${result?.form?.clinic || "Clinica"} - ${new Date().toLocaleDateString("pt-BR")}`;
+              document.title = `Laudo VERT4 - ${result?.form?.clinic || "Clinica"} - ${new Date().toLocaleDateString("pt-BR")}      @media print {
+        .topbar, .tabs, .actions, .stepper { display: none !important; }
+        .print-all-tabs { display: block !important; }
+        body, .app-shell { background: white !important; }
+        h1,h2,h3,strong { color: #111 !important; }
+        p,span { color: #333 !important; }
+        .glass { background: #f8f8f8 !important; border: 1px solid #ddd !important; box-shadow: none !important; }
+      }
+    `;
               window.print();
               document.title = orig;
+              panels.forEach(el => el.style.display = "none");
+              if (hideTabs) hideTabs.style.display = "";
             }}
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{marginRight:6,verticalAlign:"middle"}}><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -1771,8 +1836,22 @@ function AdminPanel({ adminOk, adminPw, setAdminPw, adminError, loginAdmin, load
 
     return (
       <div>
-        <button className="btn btn-ghost" style={{ marginBottom:20 }}
-          onClick={() => setSelected(null)}>← Voltar à lista</button>
+        <div style={{ display:"flex", gap:10, marginBottom:20 }}>
+          <button className="btn btn-ghost" onClick={() => setSelected(null)}>← Voltar à lista</button>
+          <button
+            className="btn btn-ghost"
+            style={{ borderColor:"rgba(215,181,109,.5)", color:"#d7b56d" }}
+            onClick={() => {
+              const orig = document.title;
+              document.title = `Diagnóstico VERT4 - ${d?.clinic || "Clinica"} - ${new Date().toLocaleDateString("pt-BR")}`;
+              window.print();
+              document.title = orig;
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{marginRight:5,verticalAlign:"middle"}}><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Salvar PDF
+          </button>
+        </div>
 
         <Panel>
           <div className="eyebrow">Diagnóstico completo</div>
